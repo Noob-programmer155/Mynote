@@ -1,7 +1,6 @@
 package com.amrtm.mynoteapps.backend.configuration.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,11 +15,15 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
-@RequiredArgsConstructor
 public class SecurityContextCustom implements ServerSecurityContextRepository {
     private final AuthenticationManagerCustom authenticationManagerCustom;
     @Value("${jwt.header.bearer}")
     private String bearer;
+
+    public SecurityContextCustom(AuthenticationManagerCustom authenticationManagerCustom) {
+        this.authenticationManagerCustom = authenticationManagerCustom;
+    }
+
     @Override
     public Mono<Void> save(ServerWebExchange exchange, SecurityContext context) {
         return Mono.error(new UnsupportedOperationException("not supported yet."));
@@ -30,8 +33,10 @@ public class SecurityContextCustom implements ServerSecurityContextRepository {
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .flatMap(this::getAuth)
-                .onErrorMap(error -> !(error instanceof ExpiredJwtException),
-                        error -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,error.getMessage(),error))
+                .onErrorMap(error -> !(error instanceof ExpiredJwtException || error instanceof IllegalArgumentException),
+                        error -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,error.getMessage()))
+                .onErrorMap(error -> error instanceof IllegalArgumentException
+                        ,error -> new ResponseStatusException(HttpStatus.FORBIDDEN))
                 .onErrorMap(error -> error instanceof ExpiredJwtException
                         ,error -> new ResponseStatusException(HttpStatus.EXPECTATION_FAILED));
     }

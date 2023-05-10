@@ -1,7 +1,6 @@
 package com.amrtm.mynoteapps.backend.configuration.security;
 
-import com.amrtm.mynoteapps.backend.service.security.JwtProvider;
-import lombok.RequiredArgsConstructor;
+import com.amrtm.mynoteapps.backend.configuration.security.token.jwt.JwtProvider;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,9 +12,13 @@ import java.util.stream.Stream;
 
 
 @Component
-@RequiredArgsConstructor
 public class AuthenticationManagerCustom implements ReactiveAuthenticationManager {
     private final JwtProvider provider;
+
+    public AuthenticationManagerCustom(JwtProvider provider) {
+        this.provider = provider;
+    }
+
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
         String token = authentication.getCredentials().toString();

@@ -1,8 +1,7 @@
 package com.amrtm.mynoteapps.backend.service.model.user;
 
-import com.amrtm.mynoteapps.backend.configuration.router.error.ErrorCustom;
-import com.amrtm.mynoteapps.backend.converter.entity_converter.GroupConverter;
-import com.amrtm.mynoteapps.backend.converter.entity_converter.MemberConverter;
+import com.amrtm.mynoteapps.backend.service.converter.entity_converter.GroupConverter;
+import com.amrtm.mynoteapps.backend.service.converter.entity_converter.MemberConverter;
 import com.amrtm.mynoteapps.backend.model.other.Login;
 import com.amrtm.mynoteapps.backend.model.other.Role;
 import com.amrtm.mynoteapps.backend.model.relation.GroupMemberRel;
@@ -27,7 +26,6 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,8 +45,11 @@ public class MemberService implements UserServiceArc<MemberDTO, UUID>{
     private final MemberFileStorage memberFileStorage;
     private final JwtProvider jwtProvider;
 
+    //clear
     public Mono<String> login(String username, String password) {
-        return memberRepo.findByName(username).flatMap(item -> {
+        return Mono.just(username).filter(String::isBlank)
+                .switchIfEmpty(Mono.error(new IllegalStateException("username must be added")))
+                .flatMap(memberRepo::findByName).flatMap(item -> {
             if (SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8().matches(password,item.getPassword())) {
                 return jwtProvider.createToken(item.getUsername(),Role.USER)
                         .flatMap(data -> loginRepo.findByName(item.getUsername()).hasElement()
@@ -60,7 +61,7 @@ public class MemberService implements UserServiceArc<MemberDTO, UUID>{
                                 }).thenReturn(data));
             } else
                 return Mono.error(new IllegalStateException("password not match"));
-        });
+        }).switchIfEmpty(Mono.error(new IllegalStateException("user does`nt sign in yet")));
     }
 
     public Mono<String> signup(MemberDTO member, FilePart filePart) {
@@ -163,18 +164,21 @@ public class MemberService implements UserServiceArc<MemberDTO, UUID>{
                 );
     }
 
-    public Flux<GroupNoteDTO> getGroups(Pageable pageable) {
+    public Flux<GroupNoteDTO> getGroups(UUID member) {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
                 .filter(Authentication::isAuthenticated)
                 .map(UsernamePasswordAuthenticationToken.class::cast)
-                .flatMap(item -> memberRepo.findByName((String) item.getPrincipal()).map(Member::getId))
-                .flatMapMany(item -> groupRepo.findByIdMember(item,pageable)
-                        .map(group -> {
-                            GroupNoteDTO groupNoteDTO = groupConverter.convertTo(group);
-                            groupNoteDTO.setIsMember(true);
-                            return groupNoteDTO;
-                        })
+                .flatMap(item -> memberRepo.findByName((String) item.getPrincipal()).hasElement())
+                .filter(is -> is)
+                .flatMapMany(ids -> groupRepo.findByIdMember(member)
+                        .flatMap(group -> groupMemberRepoRelation.findByParentAndChild(group.getId(),member)
+                                    .map(rel -> {
+                                        GroupNoteDTO groupNoteDTO = groupConverter.convertTo(group);
+                                        groupNoteDTO.setIsMember(true);
+                                        groupNoteDTO.setRoleMember(rel.getRole());
+                                        return groupNoteDTO;
+                                    }))
                 );
     }
 
