@@ -10,13 +10,15 @@ import com.amrtm.mynoteapps.usecase.user.GroupService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Function;
 
-public class GroupRouter {
-    private final GroupService<GroupStorageImpl> groupService;
-    private final com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting;
+public class GroupRouter<PagingAndSorting> {
+    private final GroupService<GroupStorageImpl,PagingAndSorting> groupService;
+    private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
 
-    public GroupRouter(GroupService<GroupStorageImpl> groupService, com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting) {
+    public GroupRouter(GroupService<GroupStorageImpl,PagingAndSorting> groupService, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.groupService = groupService;
         this.pagingAndSorting = pagingAndSorting;
     }
@@ -79,12 +81,12 @@ public class GroupRouter {
         return groupService.removeMember(member,group).thenReturn(true);
     }
 
-    public Mono<GroupNoteDTO> save(GroupNoteDTO groupNoteDTO,byte[] avatar, String filename) {
-        return groupService.save(groupNoteDTO,avatar,filename,false);
+    public Mono<GroupNoteDTO> save(GroupNoteDTO groupNoteDTO,byte[] avatar, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
+        return groupService.save(groupNoteDTO,avatar,filename,false,condition,elseCondition);
     }
 
-    public Mono<GroupNoteDTO> update(GroupNoteDTO groupNoteDTO,byte[] avatar, String filename) {
-        return groupService.save(groupNoteDTO,avatar,filename,true);
+    public Mono<GroupNoteDTO> update(GroupNoteDTO groupNoteDTO,byte[] avatar, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
+        return groupService.save(groupNoteDTO,avatar,filename,true,condition,elseCondition);
     }
 
     public Mono<Boolean> delete(UUID group) {

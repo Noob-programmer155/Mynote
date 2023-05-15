@@ -1,23 +1,12 @@
 package com.amrtm.mynoteapps.entity.relation;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
-
 import java.util.UUID;
 
-@Table("group_subtype")
 public class GroupSubtypeRel implements GroupSubtypeRelInterface<UUID> {
-    @Id
-    @Column("id")
     Long id;
-    @Column("group_note")
     UUID parent;
-    @Column("subtype")
     UUID child;
-    @Column("index")
     Integer index;
-    @Column("color")
     String color;
 
     public GroupSubtypeRel() {

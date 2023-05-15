@@ -6,6 +6,7 @@ import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.fetchjoin.JoinFetchMemberInterface;
 import com.amrtm.mynoteapps.entity.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.user.member.impl.Member;
 import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
@@ -14,13 +15,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 
-public class JoinFetchMember implements JoinFetchMemberInterface<MemberDTO> {
-    private final MemberRepoImpl memberRepo;
-    private final ThemeRepoImpl themeRepo;
+public class JoinFetchMember<PagingAndSorting> implements JoinFetchMemberInterface<MemberDTO> {
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
+    private final ThemeRepoImpl<Theme,PagingAndSorting> themeRepo;
     private final EntityBindFunctionImpl entityBindFunction;
     private final String uuid;
 
-    public JoinFetchMember(MemberRepoImpl memberRepo, ThemeRepoImpl themeRepo, EntityBindFunctionImpl entityBindFunction, String uuid) {
+    public JoinFetchMember(MemberRepoImpl<Member,PagingAndSorting> memberRepo, ThemeRepoImpl<Theme,PagingAndSorting> themeRepo, EntityBindFunctionImpl entityBindFunction, String uuid) {
         this.memberRepo = memberRepo;
         this.themeRepo = themeRepo;
         this.entityBindFunction = entityBindFunction;

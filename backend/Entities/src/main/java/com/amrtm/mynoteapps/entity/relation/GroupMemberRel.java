@@ -1,26 +1,15 @@
 package com.amrtm.mynoteapps.entity.relation;
 
 import com.amrtm.mynoteapps.entity.other.Role;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
-@Table("group_member")
 public class GroupMemberRel implements GroupMemberRelInterface<UUID> {
-    @Id
-    @Column("id")
     Long id;
-    @Column("group_note")
     UUID parent;
-    @Column("member")
     UUID child;
-    @Column("role")
     Role role;
-    @Column("isDeleted")
     Integer isDeleted;
-    @Column("isConfirmed")
     Integer isConfirmed;
 
     public GroupMemberRel() {

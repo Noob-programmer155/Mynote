@@ -3,6 +3,7 @@ package com.amrtm.mynoteapps.usecase.theme;
 import com.amrtm.mynoteapps.entity.repository.relation.ThemeMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
+import com.amrtm.mynoteapps.entity.theme.impl.Theme;
 import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
 import com.amrtm.mynoteapps.entity.relation.ThemeMemberRel;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
@@ -10,21 +11,23 @@ import com.amrtm.mynoteapps.usecase.converter.entity_converter.ThemeConverter;
 import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Function;
 
-public class ThemeService<Storage extends FileStorageImpl> implements ThemeServiceArc<ThemeDTO, UUID> {
-    private final ThemeRepoImpl themeRepo;
+public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> implements ThemeServiceArc<ThemeDTO, UUID, PagingAndSorting> {
+    private final ThemeRepoImpl<Theme,PagingAndSorting> themeRepo;
     private final ThemeConverter themeConverter;
     private final AuthValidation authValidation;
-    private final ThemeMemberRepoRelation themeMemberRepoRelation;
-    private final MemberRepoImpl memberRepo;
+    private final ThemeMemberRepoRelation<ThemeMemberRel> themeMemberRepoRelation;
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
     private final Storage themeStorage;
 
-    public ThemeService(ThemeRepoImpl themeRepo, ThemeConverter themeConverter, AuthValidation authValidation, ThemeMemberRepoRelation themeMemberRepoRelation, MemberRepoImpl memberRepo, Storage themeStorage) {
+    public ThemeService(ThemeRepoImpl<Theme,PagingAndSorting> themeRepo, ThemeConverter themeConverter, AuthValidation authValidation,
+                        ThemeMemberRepoRelation<ThemeMemberRel> themeMemberRepoRelation, MemberRepoImpl<Member,PagingAndSorting> memberRepo, Storage themeStorage) {
         this.themeRepo = themeRepo;
         this.themeConverter = themeConverter;
         this.authValidation = authValidation;
@@ -34,7 +37,7 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
     }
 
     @Override
-    public Flux<ThemeDTO> findByNameLikeSearchMember(String name, Pageable pageable) {
+    public Flux<ThemeDTO> findByNameLikeSearchMember(String name, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> themeRepo.findByNameLikeAndMember(name,item,pageable).map(themeConverter::convertTo)
@@ -50,7 +53,7 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
     }
 
     @Override
-    public Flux<UUIDIdAndName> findByNameLikeMember(String name, Pageable pageable) {
+    public Flux<UUIDIdAndName> findByNameLikeMember(String name, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> themeRepo.findByNameLikeAndMember(name,item,pageable).map(data -> new UUIDIdAndName.builder()
@@ -61,7 +64,7 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
     }
 
     @Override
-    public Flux<ThemeDTO> findByNameLikeSearch(String name, Pageable pageable) {
+    public Flux<ThemeDTO> findByNameLikeSearch(String name, PagingAndSorting pageable) {
         return themeRepo.findByNameLike(name, pageable).map(themeConverter::convertTo).map(theme -> {
             theme.setIsMyTheme(false);
             return theme;
@@ -74,7 +77,7 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
     }
 
     @Override
-    public Flux<UUIDIdAndName> findByNameLike(String name, Pageable pageable) {
+    public Flux<UUIDIdAndName> findByNameLike(String name, PagingAndSorting pageable) {
         return themeRepo.findByNameLike(name, pageable).map(item -> new UUIDIdAndName.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -82,10 +85,10 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
     }
 
     @Override
-    public Mono<ThemeDTO> save(ThemeDTO data,  byte[] filePart, String filename, boolean update) {
+    public Mono<ThemeDTO> save(ThemeDTO data, byte[] filePart, String filename, boolean update,boolean condition, Function<Path,Mono<Void>> elseCondition) {
         if (update) {
             if (filePart != null)
-                return themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images())
+                return themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images(),condition,elseCondition)
                         .flatMap(item -> {
                             data.setBackground_images(item);
                             return themeRepo.findById(data.getId())
@@ -99,7 +102,7 @@ public class ThemeService<Storage extends FileStorageImpl> implements ThemeServi
             if (filePart != null)
                 return authValidation.getValidation()
                         .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                        .flatMap(ids -> themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images())
+                        .flatMap(ids -> themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images(),condition,elseCondition)
                                     .flatMap(item -> {
                                         data.setBackground_images(item);
                                         return themeRepo.save(themeConverter.deconvert(data));

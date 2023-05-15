@@ -5,6 +5,10 @@ import com.amrtm.mynoteapps.entity.user.member.impl.Member;
 import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 import com.amrtm.mynoteapps.usecase.security.PasswordEncoder;
+import com.amrtm.mynoteapps.usecase.user.MemberService;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MemberConverter implements DataConverter<Member, MemberDTO> {
     private final PasswordEncoder passwordEncoder;

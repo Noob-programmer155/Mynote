@@ -1,23 +1,16 @@
 plugins {
-    id "java"
     id 'org.springframework.boot' version '3.0.2'
     id 'io.spring.dependency-management' version '1.1.0'
 }
 
-group = "com.amrtm.mynoteapps"
-version = "1.0"
-sourceCompatibility = '17'
-
-repositories {
-    mavenCentral()
-}
+assemble.dependsOn(":Entities:build","Usecase:build")
 
 dependencies {
-    implementation project(path: ':Entities')
-    implementation project(path: ':Usecase')
     implementation 'org.springframework.data:spring-data-commons:3.0.3'
-    implementation 'org.springframework:spring-context:5.2.0.RELEASE'
+    implementation 'org.springframework.data:spring-data-r2dbc:3.0.5'
     implementation 'io.projectreactor:reactor-core:3.4.0'
+    implementation project(':Entities')
+    implementation project(':Usecase')
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

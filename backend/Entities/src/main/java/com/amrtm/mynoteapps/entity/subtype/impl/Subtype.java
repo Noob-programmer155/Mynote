@@ -1,18 +1,14 @@
 package com.amrtm.mynoteapps.entity.subtype.impl;
 
 import com.amrtm.mynoteapps.entity.subtype.SubtypeEntity;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+
+
+
 
 import java.util.UUID;
 
-@Table("subtype")
 public class Subtype implements SubtypeEntity {
-    @Id
-    @Column("id")
     UUID id;
-    @Column("name")
     String name;
 
     public Subtype() {

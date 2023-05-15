@@ -1,20 +1,30 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 
-interface Message {
+export interface Message {
     message?: string
+    isOptional?: {
+        title?: string,
+        onClickOk: () => void
+        isDisable?: boolean
+    }
     error?: boolean
 }
 
-const initialState:Message = {} 
+interface MessageObj {
+    message: Message
+}
+const initialState:MessageObj = {
+    message:{}
+} 
 
-export const loginReducer = createSlice({
+export const messageReducer = createSlice({
     name: 'messageRespon',
     initialState,
     reducers: {
-        setMessage: (state, value:PayloadAction<Message>) => state = value.payload
+        setMessage: (state, value:PayloadAction<Message>) => {state.message = value.payload}
     }
 })
 
-export const {setMessage} = loginReducer.actions
+export const {setMessage} = messageReducer.actions
 
-export default loginReducer.reducer
+export default messageReducer.reducer

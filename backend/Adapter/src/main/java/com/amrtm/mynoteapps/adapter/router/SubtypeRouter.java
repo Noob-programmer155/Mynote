@@ -1,5 +1,6 @@
 package com.amrtm.mynoteapps.adapter.router;
 
+import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
 import com.amrtm.mynoteapps.usecase.subtype.SubtypeService;
@@ -8,11 +9,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-public class SubtypeRouter {
-    private final SubtypeService subtypeService;
-    private final com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting;
+public class SubtypeRouter<PagingAndSorting> {
+    private final SubtypeService<PagingAndSorting> subtypeService;
+    private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
 
-    public SubtypeRouter(SubtypeService subtypeService, com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting) {
+    public SubtypeRouter(SubtypeService<PagingAndSorting> subtypeService, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.subtypeService = subtypeService;
         this.pagingAndSorting = pagingAndSorting;
     }

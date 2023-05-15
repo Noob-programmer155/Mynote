@@ -4,10 +4,11 @@ import com.amrtm.mynoteapps.entity.login.Login;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.other.Role;
 import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
-import com.amrtm.mynoteapps.entity.repository.other.LoginRepoImpl;
+import com.amrtm.mynoteapps.entity.repository.login.LoginRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.user.GroupRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
+import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
 import com.amrtm.mynoteapps.entity.user.group.impl.GroupNoteDTO;
 import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
@@ -17,26 +18,31 @@ import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import com.amrtm.mynoteapps.usecase.security.SecurityTokenProvider;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.Loggers;
 
+import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class MemberService<Storage extends FileStorageImpl> implements UserServiceArc<MemberDTO, UUID> {
-    private final MemberRepoImpl memberRepo;
-    private final GroupRepoImpl groupRepo;
+public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> implements UserServiceArc<MemberDTO, UUID, PagingAndSorting> {
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
+    private final GroupRepoImpl<GroupNote,PagingAndSorting> groupRepo;
     private final MemberConverter memberConverter;
     private final GroupConverter groupConverter;
-    private final LoginRepoImpl loginRepo;
+    private final LoginRepoImpl<Login> loginRepo;
     private final AuthValidation authValidation;
     private final JoinFetchMember joinFetchMember;
-    private final GroupMemberRepoRelation groupMemberRepoRelation;
+    private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
     private final Storage memberFileStorage;
     private final SecurityTokenProvider securityTokenProvider;
 
-    public MemberService(MemberRepoImpl memberRepo, GroupRepoImpl groupRepo, MemberConverter memberConverter, GroupConverter groupConverter, LoginRepoImpl loginRepo, AuthValidation authValidation, JoinFetchMember joinFetchMember, GroupMemberRepoRelation groupMemberRepoRelation, Storage memberFileStorage, SecurityTokenProvider securityTokenProvider) {
+    public MemberService(MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupRepoImpl<GroupNote,PagingAndSorting> groupRepo, MemberConverter memberConverter,
+                         GroupConverter groupConverter, LoginRepoImpl<Login> loginRepo, AuthValidation authValidation, JoinFetchMember joinFetchMember,
+                         GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation, Storage memberFileStorage, SecurityTokenProvider securityTokenProvider) {
         this.memberRepo = memberRepo;
         this.groupRepo = groupRepo;
         this.memberConverter = memberConverter;
@@ -51,10 +57,10 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
 
     //clear
     public Mono<String> login(String username, String password,Function<Pair<String,String>, Boolean> matchesPassword) {
-        return Mono.just(username).filter(String::isBlank)
+        return Mono.just(username).filter(item -> !item.isBlank())
                 .switchIfEmpty(Mono.error(new IllegalStateException("username must be added")))
                 .flatMap(memberRepo::findByName).flatMap(item -> {
-            if (matchesPassword.apply(new Pair<>(item.getPassword(), password))) {
+            if (matchesPassword.apply(new Pair<>(password,item.getPassword()))) {
                 return securityTokenProvider.createToken(item.getUsername(),Role.USER)
                         .flatMap(data -> loginRepo.findByName(item.getUsername()).hasElement()
                                 .flatMap(is -> {
@@ -68,10 +74,10 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
         }).switchIfEmpty(Mono.error(new IllegalStateException("user does`nt sign in yet")));
     }
 
-    public Mono<String> signup(MemberDTO member, byte[] filePart, String filename) {
+    public Mono<String> signup(MemberDTO member, byte[] filePart, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         if (member.getPassword() == null || member.getPassword().isBlank() || member.getUsername() == null || member.getUsername().isBlank())
             return Mono.error(new IllegalStateException("password and username cannot be null"));
-        return save(member, filePart, filename, false).flatMap(item -> {
+        return save(member, filePart, filename, false,condition,elseCondition).flatMap(item -> {
             if (item != null)
                 return securityTokenProvider.createToken(item.getUsername(), Role.USER)
                         .flatMap(data -> loginRepo.save(new Login.builder().member(item.getId()).token(data).build())
@@ -115,13 +121,13 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
     }
 
     @Override
-    public Flux<UUIDIdAndName> findByNameLike(String name, Pageable pageable) {
+    public Flux<UUIDIdAndName> findByNameLike(String name, PagingAndSorting pageable) {
     return memberRepo.findByNameLike(name, pageable).map(item -> new UUIDIdAndName.builder()
             .id(item.getId()).name(item.getUsername()).build());
     }
 
     @Override
-    public Flux<MemberDTO> findByNameLikeData(String name, Pageable pageable) {
+    public Flux<MemberDTO> findByNameLikeData(String name, PagingAndSorting pageable) {
         return memberRepo.findByNameLike(name, pageable).map(memberConverter::convertTo);
     }
 
@@ -130,7 +136,7 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
         return memberRepo.validateName(name).hasElement().map(item -> !item);
     }
 
-    public Flux<GroupNoteDTO> findByRejectedStatusGroup(Pageable pageable) {
+    public Flux<GroupNoteDTO> findByRejectedStatusGroup(PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> groupRepo.findByRejectState(item,pageable)
@@ -142,7 +148,7 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
                 );
     }
 
-    public Flux<GroupNoteDTO> findByWaitingStatusGroup(Pageable pageable) {
+    public Flux<GroupNoteDTO> findByWaitingStatusGroup(PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> groupRepo.findByWaitingState(item,pageable)
@@ -173,7 +179,7 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
         return authValidation.getValidation()
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> {
-                    if(matchesPassword.apply(new Pair<>(item.getPassword(),oldPassword))) {
+                    if(matchesPassword.apply(new Pair<>(oldPassword,item.getPassword()))) {
                         return memberRepo.save(memberConverter.deconvert(new MemberDTO.builder()
                                 .id(item.getId())
                                 .password(newPassword)
@@ -233,9 +239,9 @@ public class MemberService<Storage extends FileStorageImpl> implements UserServi
                 .flatMap(item -> groupMemberRepoRelation.deleteByParentAndChild(group,item));
     }
 
-    public Mono<MemberDTO> save(MemberDTO data, byte[] avatar, String filename,boolean update) {
+    public Mono<MemberDTO> save(MemberDTO data, byte[] avatar, String filename,boolean update, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         if (avatar != null)
-            return memberFileStorage.storeFile(avatar,filename,"member", data.getAvatar()).flatMap(item -> {
+            return memberFileStorage.storeFile(avatar,filename,"member", data.getAvatar(),condition,elseCondition).flatMap(item -> {
                 data.setAvatar(item);
                 if (update)
                     return memberRepo.findById(data.getId())

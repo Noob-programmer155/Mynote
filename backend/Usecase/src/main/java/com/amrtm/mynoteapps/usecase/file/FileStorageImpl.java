@@ -10,18 +10,16 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class FileStorageImpl implements FileStorage {
     private final Path base;
-    private final boolean condition;
-    private final Mono<Boolean> elseCondition;
 
-    public FileStorageImpl(Path base, boolean condition, Mono<Boolean> elseCondition) {
+    public FileStorageImpl(Path base) {
         this.base = base;
-        this.condition = condition;
-        this.elseCondition = elseCondition;
     }
 
     public Mono<byte[]> retrieveFile(String name) {
@@ -32,7 +30,7 @@ public class FileStorageImpl implements FileStorage {
         }
     }
 
-    public Mono<String> storeFile(byte[] filePart, String filename, String prefix, String name) {
+    public Mono<String> storeFile(byte[] filePart, String filename, String prefix, String name, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         String title = (name != null)? name:prefix + UUID.nameUUIDFromBytes(filename.getBytes()) + ".jpg";
         return validateAndStore(filePart,title,condition,elseCondition).then(Mono.just(title));
     }
@@ -46,6 +44,8 @@ public class FileStorageImpl implements FileStorage {
                     BufferedImage.TYPE_INT_RGB);
             newBufferedImage.createGraphics()
                     .drawImage(bufImage,0,0, Color.WHITE,null);
+            if (!Files.exists(base))
+                Files.createDirectories(base);
             ImageIO.write(newBufferedImage,"jpg",new File(base.resolve(filename).toString()));
             return Mono.empty();
         } catch (IOException e) {
@@ -53,11 +53,11 @@ public class FileStorageImpl implements FileStorage {
         }
     }
 
-    public Mono<Boolean> validateAndStore(byte[] filePart, String filename, boolean condition, Mono<Boolean> elseCondition) {
+    public Mono<Boolean> validateAndStore(byte[] filePart, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         if (condition)
             return createImage(filePart,filename).then(Mono.just(true));
         else
-            return elseCondition;
+            return elseCondition.apply(base.resolve(filename)).then(Mono.just(true));
     }
 
     public Mono<Boolean> deleteFile(String name) {

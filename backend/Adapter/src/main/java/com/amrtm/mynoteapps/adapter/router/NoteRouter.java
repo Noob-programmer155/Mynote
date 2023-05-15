@@ -2,6 +2,7 @@ package com.amrtm.mynoteapps.adapter.router;
 
 import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
 import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.usecase.note.NoteService;
@@ -11,14 +12,12 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.UUID;
 
-public class NoteRouter {
-    private final NoteService noteService;
-    private final String initUUID;
-    private final com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting;
+public class NoteRouter<PagingAndSorting> {
+    private final NoteService<PagingAndSorting> noteService;
+    private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
 
-    public NoteRouter(NoteService noteService, String initUUID, com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting) {
+    public NoteRouter(NoteService<PagingAndSorting> noteService, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.noteService = noteService;
-        this.initUUID = initUUID;
         this.pagingAndSorting = pagingAndSorting;
     }
 

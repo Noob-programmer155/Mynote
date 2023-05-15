@@ -12,3 +12,10 @@ export type IdAndName<ID> = {
     id: ID,
     name: string
 }
+
+export const enum Role{
+    MANAGER="MANAGER",
+    ADMIN="ADMIN",
+    MEMBER="MEMBER",
+    USER="USER"
+}

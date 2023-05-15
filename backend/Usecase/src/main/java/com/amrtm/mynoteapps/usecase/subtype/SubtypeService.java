@@ -1,31 +1,35 @@
 package com.amrtm.mynoteapps.usecase.subtype;
 
+import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.Role;
+import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
 import com.amrtm.mynoteapps.entity.relation.GroupSubtypeRel;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupSubtypeRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.subtype.SubtypeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
+import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
 import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.SubtypeConverter;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
-public class SubtypeService implements SubtypeServiceArc<SubtypeDTO, UUID>{
-    private final SubtypeRepoImpl subtypeRepo;
+public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<SubtypeDTO, UUID, PagingAndSorting>{
+    private final SubtypeRepoImpl<Subtype,PagingAndSorting> subtypeRepo;
     private final SubtypeConverter subtypeConverter;
-    private final GroupSubtypeRepoRelation groupSubtypeRepoRelation;
+    private final GroupSubtypeRepoRelation<GroupSubtypeRel> groupSubtypeRepoRelation;
     private final AuthValidation authValidation;
-    private final GroupMemberRepoRelation groupMemberRepoRelation;
-    private final MemberRepoImpl memberRepo;
-    private final NoteCollabRepo noteCollabRepo;
+    private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
+    private final NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo;
 
-    public SubtypeService(SubtypeRepoImpl subtypeRepo, SubtypeConverter subtypeConverter, GroupSubtypeRepoRelation groupSubtypeRepoRelation, AuthValidation authValidation, GroupMemberRepoRelation groupMemberRepoRelation, MemberRepoImpl memberRepo, NoteCollabRepo noteCollabRepo) {
+    public SubtypeService(SubtypeRepoImpl<Subtype,PagingAndSorting> subtypeRepo, SubtypeConverter subtypeConverter, GroupSubtypeRepoRelation<GroupSubtypeRel> groupSubtypeRepoRelation,
+                          AuthValidation authValidation, GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation, MemberRepoImpl<Member,PagingAndSorting> memberRepo,
+                          NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo) {
         this.subtypeRepo = subtypeRepo;
         this.subtypeConverter = subtypeConverter;
         this.groupSubtypeRepoRelation = groupSubtypeRepoRelation;
@@ -41,7 +45,7 @@ public class SubtypeService implements SubtypeServiceArc<SubtypeDTO, UUID>{
     }
 
     @Override
-    public Flux<SubtypeDTO> findByName(String name, Pageable pageable) {
+    public Flux<SubtypeDTO> findByName(String name, PagingAndSorting pageable) {
         return subtypeRepo.findByNameLike(name, pageable).map(subtypeConverter::convertTo);
     }
 

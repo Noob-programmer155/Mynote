@@ -1,0 +1,51 @@
+package com.amrtm.mynoteapps.adapter.database.persistence.persistenceObj.user;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+import java.util.UUID;
+
+@Table("group_note")
+public class GroupNote {
+    @Id
+    @Column("id")
+    UUID id;
+    @Column("name")
+    String username;
+    @Column("avatar")
+    String avatar;
+
+    public GroupNote() {
+    }
+
+    public GroupNote(UUID id, String username, String avatar) {
+        this.id = id;
+        this.username = username;
+        this.avatar = avatar;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+}

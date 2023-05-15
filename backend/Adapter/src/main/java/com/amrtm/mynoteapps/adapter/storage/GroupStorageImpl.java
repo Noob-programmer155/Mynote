@@ -7,7 +7,7 @@ import java.nio.file.Path;
 
 public class GroupStorageImpl extends FileStorageImpl {
 
-    public GroupStorageImpl(Path base, boolean condition, Mono<Boolean> elseCondition) {
-        super(base, condition, elseCondition);
+    public GroupStorageImpl(Path base) {
+        super(base);
     }
 }

@@ -2,6 +2,4 @@ rootProject.name = 'backend'
 include 'Entities'
 include 'Usecase'
 include 'Adapter'
-include 'Adapter'
-include 'Configuration'
-
+include 'Application'

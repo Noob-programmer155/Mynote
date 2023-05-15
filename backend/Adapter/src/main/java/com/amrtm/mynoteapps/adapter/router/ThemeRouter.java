@@ -1,6 +1,7 @@
 package com.amrtm.mynoteapps.adapter.router;
 
 import com.amrtm.mynoteapps.adapter.storage.ThemeStorageImpl;
+import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
@@ -8,13 +9,15 @@ import com.amrtm.mynoteapps.usecase.theme.ThemeService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Function;
 
-public class ThemeRouter {
-    private final ThemeService<ThemeStorageImpl> themeService;
-    private final com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting;
+public class ThemeRouter<PagingAndSorting> {
+    private final ThemeService<ThemeStorageImpl,PagingAndSorting> themeService;
+    private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
 
-    public ThemeRouter(ThemeService<ThemeStorageImpl> themeService, com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting) {
+    public ThemeRouter(ThemeService<ThemeStorageImpl,PagingAndSorting> themeService, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.themeService = themeService;
         this.pagingAndSorting = pagingAndSorting;
     }
@@ -43,12 +46,12 @@ public class ThemeRouter {
         return themeService.validateName(name).map(SingleData::new);
     }
 
-    public Mono<ThemeDTO> save(ThemeDTO themeDTO, byte[] filePart, String filename) {
-        return themeService.save(themeDTO,filePart,filename,false);
+    public Mono<ThemeDTO> save(ThemeDTO themeDTO, byte[] filePart, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
+        return themeService.save(themeDTO,filePart,filename,false,condition,elseCondition);
     }
 
-    public Mono<ThemeDTO> update(ThemeDTO themeDTO, byte[] filePart, String filename) {
-        return themeService.save(themeDTO,filePart,filename,true);
+    public Mono<ThemeDTO> update(ThemeDTO themeDTO, byte[] filePart, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
+        return themeService.save(themeDTO,filePart,filename,true,condition,elseCondition);
     }
 
     public Mono<SingleData<Boolean>> activateTheme(UUID theme) {

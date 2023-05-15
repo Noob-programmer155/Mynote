@@ -6,7 +6,8 @@ interface NotificationStateData {
     requestRejectedMember: Member[]
     requestListGroup: Group[]
     requestRejectedGroup: Group[]
-    openNotification: boolean
+    openNotificationMember: boolean
+    openNotificationGroup: boolean
 }
 
 const initialState: NotificationStateData = {
@@ -14,7 +15,8 @@ const initialState: NotificationStateData = {
     requestRejectedMember: [],
     requestListGroup: [],
     requestRejectedGroup: [],
-    openNotification: false,
+    openNotificationMember: false,
+    openNotificationGroup: false
 }
 
 export const notificationReducer = createSlice({
@@ -25,9 +27,10 @@ export const notificationReducer = createSlice({
         setRequestRejectedMember: (state, value: PayloadAction<Member[]>) => {state.requestRejectedMember = value.payload},
         setRequestListGroup: (state, value: PayloadAction<Group[]>) => {state.requestListGroup = value.payload},
         setRequestRejectedGroup: (state, value: PayloadAction<Group[]>) => {state.requestRejectedGroup = value.payload},
-        setOpenNotification: (state, value: PayloadAction<boolean>) => {state.openNotification = value.payload}
+        setOpenNotificationMember: (state, value: PayloadAction<boolean>) => {state.openNotificationMember = value.payload},
+        setOpenNotificationGroup: (state, value: PayloadAction<boolean>) => {state.openNotificationGroup = value.payload}
     }
 })
 
-export const {setRequestListGroup,setRequestListMember,setRequestRejectedGroup,setRequestRejectedMember,setOpenNotification} = notificationReducer.actions
+export const {setRequestListGroup,setRequestListMember,setRequestRejectedGroup,setRequestRejectedMember,setOpenNotificationMember,setOpenNotificationGroup} = notificationReducer.actions
 export default notificationReducer.reducer

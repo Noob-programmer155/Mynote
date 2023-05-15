@@ -1,9 +1,12 @@
 package com.amrtm.mynoteapps.usecase.note;
 
+import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivate;
 import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
 import com.amrtm.mynoteapps.entity.other.Role;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
+import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import com.amrtm.mynoteapps.entity.repository.note.NotePrivateRepo;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
@@ -14,7 +17,6 @@ import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.NoteCollabConverter;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.NotePrivateConverter;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,17 +24,19 @@ import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings("unchecked")
-public class NoteService implements NoteServiceArc {
-    private final NotePrivateRepo notePrivateRepo;
-    private final NoteCollabRepo noteCollabRepo;
+public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSorting> {
+    private final NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo;
+    private final NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo;
     private final JoinFetchNote joinFetchNote;
     private final AuthValidation authValidation;
     private final NoteCollabConverter noteCollabConverter;
     private final NotePrivateConverter notePrivateConverter;
-    private final MemberRepoImpl memberRepo;
-    private final GroupMemberRepoRelation groupMemberRepoRelation;
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
+    private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
 
-    public NoteService(NotePrivateRepo notePrivateRepo, NoteCollabRepo noteCollabRepo, JoinFetchNote joinFetchNote, AuthValidation authValidation, NoteCollabConverter noteCollabConverter, NotePrivateConverter notePrivateConverter, MemberRepoImpl memberRepo, GroupMemberRepoRelation groupMemberRepoRelation) {
+    public NoteService(NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo, NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo,
+                       JoinFetchNote joinFetchNote, AuthValidation authValidation, NoteCollabConverter noteCollabConverter, NotePrivateConverter notePrivateConverter,
+                       MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation) {
         this.notePrivateRepo = notePrivateRepo;
         this.noteCollabRepo = noteCollabRepo;
         this.joinFetchNote = joinFetchNote;
@@ -44,7 +48,7 @@ public class NoteService implements NoteServiceArc {
     }
 
     @Override
-    public Flux<NotePrivateDTO> findByTitleMember(String name, Pageable pageable) {
+    public Flux<NotePrivateDTO> findByTitleMember(String name, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> joinFetchNote.findByTitleLike(name,item,null,pageable));
@@ -81,7 +85,7 @@ public class NoteService implements NoteServiceArc {
     }
 
     @Override
-    public Flux<NoteCollabDTO> findByTitleGroup(UUID group, String title, Pageable pageable) {
+    public Flux<NoteCollabDTO> findByTitleGroup(UUID group, String title, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
@@ -91,14 +95,14 @@ public class NoteService implements NoteServiceArc {
     }
 
     @Override
-    public Flux<NotePrivateDTO> filterMember(List<String> category, List<String> severity, Pageable pageable) {
+    public Flux<NotePrivateDTO> filterMember(List<String> category, List<String> severity, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> joinFetchNote.findByFilterPrivate(category,severity,item,pageable));
     }
 
     @Override
-    public Flux<NoteCollabDTO> filterGroup(List<String> severity,List<UUID> subtypeDTOS, String member, UUID group, Pageable pageable) {
+    public Flux<NoteCollabDTO> filterGroup(List<String> severity,List<UUID> subtypeDTOS, String member, UUID group, PagingAndSorting pageable) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())

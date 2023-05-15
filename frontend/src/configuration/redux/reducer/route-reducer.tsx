@@ -4,7 +4,7 @@ import { ReduxRoute } from "../redux-item-route";
 export const routeReducer = createSlice({
     name:"routeReducer",
     initialState: {
-        route: ReduxRoute.HOME
+        route: ReduxRoute.THEME
     },
     reducers:{
         setRoute:(state, action: PayloadAction<ReduxRoute>) => {state.route = action.payload}

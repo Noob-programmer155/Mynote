@@ -16,7 +16,6 @@ import com.amrtm.mynoteapps.entity.repository.subtype.SubtypeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
 import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,19 +23,19 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.UUID;
 
-class JoinFetchNotePrivate implements JoinFetchNotePrivateInterface {
+class JoinFetchNotePrivate<PagingAndSorting> implements JoinFetchNotePrivateInterface<PagingAndSorting> {
 
-    private final NotePrivateRepo notePrivateRepo;
-    private final MemberRepoImpl memberRepo;
+    private final NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo;
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
     private final EntityBindFunctionImpl entityBindFunction;
 
-    public JoinFetchNotePrivate(NotePrivateRepo notePrivateRepo, MemberRepoImpl memberRepo, EntityBindFunctionImpl entityBindFunction) {
+    public JoinFetchNotePrivate(NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo, MemberRepoImpl<Member,PagingAndSorting> memberRepo, EntityBindFunctionImpl entityBindFunction) {
         this.notePrivateRepo = notePrivateRepo;
         this.memberRepo = memberRepo;
         this.entityBindFunction = entityBindFunction;
     }
 
-    public Flux<NotePrivateDTO> findByTitleLike(String name, UUID id, Pageable pageable) {
+    public Flux<NotePrivateDTO> findByTitleLike(String name, UUID id, PagingAndSorting pageable) {
         return memberRepo.findById(id).flatMapMany(member -> notePrivateRepo.findByTitleLike(name,member.getId(),pageable).flatMap(item -> {
             if (item != null) {
                 return Mono.zip(Mono.just(item),Mono.just(member)).map(data -> entityBindFunction.NOTE_PRIVATE_DTO_BINDING(new Tuple2<>(data.getT1(),data.getT2())));
@@ -45,7 +44,7 @@ class JoinFetchNotePrivate implements JoinFetchNotePrivateInterface {
         }));
     }
 
-    public Flux<NotePrivateDTO> findByFilterPrivate(List<String> category, List<String> severity, UUID member, Pageable pageable) {
+    public Flux<NotePrivateDTO> findByFilterPrivate(List<String> category, List<String> severity, UUID member, PagingAndSorting pageable) {
         return memberRepo.findById(member).flatMapMany(memberItem -> notePrivateRepo.findByFilter(category,severity,member,pageable).distinctUntilChanged(NotePrivate::getId).flatMap(item -> {
             if (item != null) {
                 return Mono.zip(Mono.just(item),Mono.just(memberItem)).map(data -> entityBindFunction.NOTE_PRIVATE_DTO_BINDING(new Tuple2<>(data.getT1(),data.getT2())));
@@ -55,13 +54,14 @@ class JoinFetchNotePrivate implements JoinFetchNotePrivateInterface {
     }
 }
 
-class JoinFetchNoteCollab implements JoinFetchNoteCollabInterface {
-    private final NoteCollabRepo noteCollabRepo;
-    private final SubtypeRepoImpl subtypeRepo;
-    private final MemberRepoImpl memberRepo;
+class JoinFetchNoteCollab<PagingAndSorting> implements JoinFetchNoteCollabInterface<PagingAndSorting> {
+    private final NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo;
+    private final SubtypeRepoImpl<Subtype,PagingAndSorting> subtypeRepo;
+    private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
     private final EntityBindFunctionImpl entityBindFunction;
 
-    public JoinFetchNoteCollab(NoteCollabRepo noteCollabRepo, SubtypeRepoImpl subtypeRepo, MemberRepoImpl memberRepo, EntityBindFunctionImpl entityBindFunction) {
+    public JoinFetchNoteCollab(NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo, SubtypeRepoImpl<Subtype,PagingAndSorting> subtypeRepo,
+                               MemberRepoImpl<Member,PagingAndSorting> memberRepo, EntityBindFunctionImpl entityBindFunction) {
         this.noteCollabRepo = noteCollabRepo;
         this.subtypeRepo = subtypeRepo;
         this.memberRepo = memberRepo;
@@ -79,7 +79,7 @@ class JoinFetchNoteCollab implements JoinFetchNoteCollabInterface {
             }));
     }
 
-    public Flux<NoteCollabDTO> findByTitleLikeAndGroup(String name, UUID group, Pageable pageable) {
+    public Flux<NoteCollabDTO> findByTitleLikeAndGroup(String name, UUID group, PagingAndSorting pageable) {
         return noteCollabRepo.findByTitleLikeAndGroupMember(name, group, pageable).flatMap(item -> {
             if (item != null) {
                 Mono<Subtype> sub = subtypeRepo.findById(item.getSubtype());
@@ -90,7 +90,7 @@ class JoinFetchNoteCollab implements JoinFetchNoteCollabInterface {
         });
     }
 
-    public Flux<NoteCollabDTO> findByFilterGroupMember(List<String> severity, List<UUID> subtype, String member, UUID group, Pageable pageable) {
+    public Flux<NoteCollabDTO> findByFilterGroupMember(List<String> severity, List<UUID> subtype, String member, UUID group, PagingAndSorting pageable) {
         return noteCollabRepo.findByFilterGroupMember(severity,subtype,member,group,pageable).distinctUntilChanged(NoteCollab::getId).flatMap(item -> {
             if (item != null) {
                 Mono<Subtype> sub = subtypeRepo.findById(item.getSubtype());
@@ -103,16 +103,17 @@ class JoinFetchNoteCollab implements JoinFetchNoteCollabInterface {
 }
 
 
-public class JoinFetchNote{
-    private final JoinFetchNotePrivate joinFetchNotePrivate;
-    private final JoinFetchNoteCollab joinFetchNoteCollab;
-    public JoinFetchNote(NotePrivateRepo notePrivateRepo, NoteCollabRepo noteCollabRepo, SubtypeRepoImpl subtypeRepo, MemberRepoImpl memberRepo, EntityBindFunctionImpl entityBindFunction) {
-        this.joinFetchNotePrivate = new JoinFetchNotePrivate(notePrivateRepo, memberRepo, entityBindFunction);
-        this.joinFetchNoteCollab = new JoinFetchNoteCollab(noteCollabRepo, subtypeRepo, memberRepo, entityBindFunction);
+public class JoinFetchNote<PagingAndSorting>{
+    private final JoinFetchNotePrivate<PagingAndSorting> joinFetchNotePrivate;
+    private final JoinFetchNoteCollab<PagingAndSorting> joinFetchNoteCollab;
+    public JoinFetchNote(NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo, NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo,
+                         SubtypeRepoImpl<Subtype,PagingAndSorting> subtypeRepo, MemberRepoImpl<Member,PagingAndSorting> memberRepo, EntityBindFunctionImpl entityBindFunction) {
+        this.joinFetchNotePrivate = new JoinFetchNotePrivate<>(notePrivateRepo, memberRepo, entityBindFunction);
+        this.joinFetchNoteCollab = new JoinFetchNoteCollab<>(noteCollabRepo, subtypeRepo, memberRepo, entityBindFunction);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends NoteDTOInterface> Flux<T> findByTitleLike(String name, UUID member, UUID group, Pageable pageable) {
+    public <T extends NoteDTOInterface> Flux<T> findByTitleLike(String name, UUID member, UUID group, PagingAndSorting pageable) {
         if (group == null)
             return (Flux<T>) joinFetchNotePrivate.findByTitleLike(name, member, pageable);
         else
@@ -123,11 +124,11 @@ public class JoinFetchNote{
         return joinFetchNoteCollab.findBySubtype(subtype, group);
     }
 
-    public Flux<NotePrivateDTO> findByFilterPrivate(List<String> category, List<String> severity, UUID member, Pageable pageable) {
+    public Flux<NotePrivateDTO> findByFilterPrivate(List<String> category, List<String> severity, UUID member, PagingAndSorting pageable) {
         return joinFetchNotePrivate.findByFilterPrivate(category, severity, member, pageable);
     }
 
-    public Flux<NoteCollabDTO> findByFilterGroupMember(List<String> severity, List<UUID> subtype, String member, UUID group, Pageable pageable) {
+    public Flux<NoteCollabDTO> findByFilterGroupMember(List<String> severity, List<UUID> subtype, String member, UUID group, PagingAndSorting pageable) {
         return joinFetchNoteCollab.findByFilterGroupMember(severity, subtype, member, group, pageable);
     }
 }

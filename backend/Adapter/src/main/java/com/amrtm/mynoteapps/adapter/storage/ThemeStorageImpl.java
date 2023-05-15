@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 import java.nio.file.Path;
 
 public class ThemeStorageImpl extends FileStorageImpl {
-    public ThemeStorageImpl(Path base, boolean condition, Mono<Boolean> elseCondition) {
-        super(base, condition, elseCondition);
+    public ThemeStorageImpl(Path base) {
+        super(base);
     }
 }

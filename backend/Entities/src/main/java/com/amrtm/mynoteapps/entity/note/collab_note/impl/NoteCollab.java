@@ -2,41 +2,20 @@ package com.amrtm.mynoteapps.entity.note.collab_note.impl;
 
 import com.amrtm.mynoteapps.entity.note.collab_note.CollabNoteEntity;
 
-import org.springframework.data.annotation.*;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table("note")
 public class NoteCollab implements CollabNoteEntity {
-    @Id
-    @Column("id")
     UUID id;
-    @Column("title")
     String title;
-    @Column("severity")
     String severity;
-    @Column("description")
     String description;
-    @Column("keynotes")
     String keynotes;
-    @CreatedBy
-    @Column("createdBy")
     String createdBy;
-    @CreatedDate
-    @Column("createdDate")
     LocalDateTime createdDate;
-    @LastModifiedBy
-    @Column("lastModifiedBy")
     String lastModifiedBy;
-    @LastModifiedDate
-    @Column("lastModifiedDate")
     LocalDateTime lastModifiedDate;
-    @Column("subtype")
     UUID subtype;
-    @Column("member")
     UUID member;
 
     public NoteCollab() {

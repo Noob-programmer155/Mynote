@@ -7,7 +7,7 @@ import java.nio.file.Path;
 
 public class MemberStorageImpl extends FileStorageImpl {
 
-    public MemberStorageImpl(Path base, boolean condition, Mono<Boolean> elseCondition) {
-        super(base, condition, elseCondition);
+    public MemberStorageImpl(Path base) {
+        super(base);
     }
 }

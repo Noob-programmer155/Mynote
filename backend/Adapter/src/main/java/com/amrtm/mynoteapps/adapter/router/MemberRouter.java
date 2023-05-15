@@ -12,15 +12,16 @@ import com.amrtm.mynoteapps.usecase.user.MemberService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Function;
 
-public class MemberRouter {
-    private final MemberService<MemberStorageImpl> memberService;
+public class MemberRouter<PagingAndSorting> {
+    private final MemberService<MemberStorageImpl,PagingAndSorting> memberService;
     private final SecurityTokenProvider securityTokenProvider;
-    private final com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting;
+    private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
 
-    public MemberRouter(MemberService<MemberStorageImpl> memberService, SecurityTokenProvider securityTokenProvider, com.amrtm.mynoteapps.adapter.router.routerfunc.pagingandsorting.PagingAndSorting pagingAndSorting) {
+    public MemberRouter(MemberService<MemberStorageImpl,PagingAndSorting> memberService, SecurityTokenProvider securityTokenProvider, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.memberService = memberService;
         this.securityTokenProvider = securityTokenProvider;
         this.pagingAndSorting = pagingAndSorting;
@@ -30,8 +31,8 @@ public class MemberRouter {
         return memberService.login(username,password,matchesPassword).map(SingleData::new);
     }
 
-    public Mono<SingleData<String>> signup(MemberDTO memberDTO,byte[] filePart,String filename) {
-        return memberService.signup(memberDTO,filePart,filename).map(SingleData::new);
+    public Mono<SingleData<String>> signup(MemberDTO memberDTO,byte[] filePart,String filename,boolean condition,Function<Path,Mono<Void>> elseCondition) {
+        return memberService.signup(memberDTO,filePart,filename,condition,elseCondition).map(SingleData::new);
     }
 
     public Mono<SingleData<Boolean>> logout(Mono<Void> sessionInvalidate, Mono<Void> invalidateContext) {
@@ -90,8 +91,8 @@ public class MemberRouter {
         return memberService.sendRequest(group).map(SingleData::new);
     }
 
-    public Mono<SingleData<String>> update(MemberDTO memberDTO,byte[] filePart,String filename) {
-        return memberService.save(memberDTO,filePart,filename,true).flatMap(item -> securityTokenProvider.createToken(item.getUsername(), Role.USER).map(SingleData::new));
+    public Mono<SingleData<String>> update(MemberDTO memberDTO,byte[] filePart,String filename,boolean condition,Function<Path,Mono<Void>> elseCondition) {
+        return memberService.save(memberDTO,filePart,filename,true,condition,elseCondition).flatMap(item -> securityTokenProvider.createToken(item.getUsername(), Role.USER).map(SingleData::new));
     }
 
     public Mono<SingleData<Boolean>> delete(UUID member) {

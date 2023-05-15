@@ -1,29 +1,33 @@
 import { Backdrop, Card, CardActions, CardContent, Stack, SxProps, Theme, Typography } from "@mui/material";
-import { ChangeEvent } from "react";
+import { ChangeEvent, MouseEvent } from "react";
 import { Theme as ThemeObj } from "../../model/model";
 import { StateThemeUtils, ThemeButton, ThemeTextField } from "./global";
 
 interface LoginInterface {
     open: boolean
-    onClose: () => void
-    onChangeUsername: (text: ChangeEvent<HTMLInputElement>) => void
-    onChangePassword: (text: ChangeEvent<HTMLInputElement>) => void
-    onClickLogin: () => void
-    onClickSignin: () => void
+    onClose: (event?:MouseEvent<HTMLElement,globalThis.MouseEvent>) => void
+    onChangeUsername: ((text: ChangeEvent<HTMLInputElement>) => void)
+    onChangePassword: ((text: ChangeEvent<HTMLInputElement>) => void)
+    onClickLogin: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
+    onClickSignin: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     theme: ThemeObj
+    disableLoginBtn: boolean
     data: {username: string, password: string}
 }
 
-export function Login({open, onClose, onChangePassword, onChangeUsername, onClickLogin, onClickSignin, theme, data}: LoginInterface): JSX.Element {
-    let cardSx = {
+export function Login({open, onClose, onChangePassword, onChangeUsername, onClickLogin, disableLoginBtn, onClickSignin, theme, data}: LoginInterface): JSX.Element {
+    const cardSx = {
         maxWidth: "400px",
+        maxHeight: "100%",
+        overflow: "auto",
         width: "90vw",
-        background: "white",
+        backgroundColor: theme.background_color,
+        color: theme.foreground_color,
         padding: "20px 0"
     } as SxProps<Theme>
     return(
         <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
             open={open}
             onClick={onClose}
         >
@@ -54,7 +58,7 @@ export function Login({open, onClose, onChangePassword, onChangeUsername, onClic
                             onClick={onClickSignin} 
                             sx={{margin: "auto", textTransform: "none"}}
                             themeObj={theme}
-                            state={StateThemeUtils.DEFAULT}
+                            state={StateThemeUtils.INFO}
                         >
                             your are not a member?,come on join us
                         </ThemeButton>
@@ -65,7 +69,8 @@ export function Login({open, onClose, onChangePassword, onChangeUsername, onClic
                         id="btn-login"
                         variant="contained" 
                         onClick={onClickLogin} 
-                        sx={{margin: "auto"}}
+                        sx={{margin: "auto",textTransform: "none"}}
+                        disabled = {disableLoginBtn}
                         themeObj={theme}
                         state={StateThemeUtils.DEFAULT}
                     >

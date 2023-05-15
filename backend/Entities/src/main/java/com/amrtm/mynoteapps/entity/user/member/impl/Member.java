@@ -1,22 +1,13 @@
 package com.amrtm.mynoteapps.entity.user.member.impl;
 
 import com.amrtm.mynoteapps.entity.user.member.MemberInterface;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
-@Table("member")
 public class Member implements MemberInterface {
-    @Id
-    @Column("id")
     UUID id;
-    @Column("name")
     String username;
-    @Column("password")
     String password;
-    @Column("avatar")
     String avatar;
 
     public Member() {

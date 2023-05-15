@@ -1,20 +1,12 @@
 package com.amrtm.mynoteapps.entity.user.group.impl;
 
 import com.amrtm.mynoteapps.entity.user.group.GroupNoteInterface;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.UUID;
 
-@Table("group_note")
 public class GroupNote implements GroupNoteInterface {
-    @Id
-    @Column("id")
     UUID id;
-    @Column("name")
     String username;
-    @Column("avatar")
     String avatar;
 
     public GroupNote() {
