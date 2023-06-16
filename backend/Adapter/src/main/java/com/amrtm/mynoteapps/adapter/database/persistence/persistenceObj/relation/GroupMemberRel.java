@@ -22,17 +22,20 @@ public class GroupMemberRel {
     Integer isDeleted;
     @Column("isConfirmed")
     Integer isConfirmed;
+    @Column("userFrom")
+    UUID userFrom;
 
     public GroupMemberRel() {
     }
 
-    public GroupMemberRel(Long id, UUID parent, UUID child, Role role, Integer isDeleted, Integer isConfirmed) {
+    public GroupMemberRel(Long id, UUID parent, UUID child, Role role, Integer isDeleted, Integer isConfirmed, UUID userFrom) {
         this.id = id;
         this.parent = parent;
         this.child = child;
         this.role = role;
         this.isDeleted = isDeleted;
         this.isConfirmed = isConfirmed;
+        this.userFrom = userFrom;
     }
 
     public Long getId() {
@@ -81,5 +84,13 @@ public class GroupMemberRel {
 
     public void setIsConfirmed(Integer isConfirmed) {
         this.isConfirmed = isConfirmed;
+    }
+
+    public UUID getUserFrom() {
+        return userFrom;
+    }
+
+    public void setUserFrom(UUID userFrom) {
+        this.userFrom = userFrom;
     }
 }

@@ -42,8 +42,8 @@ public class ThemeRepoAdapter implements ThemeRepoImpl<Theme, Pageable> {
     }
 
     @Override
-    public Flux<Theme> findByNameLike(String name, Pageable pageable) {
-        return themeRepo.findByNameLike(name, pageable).map(themePersisConv::toSecond);
+    public Flux<Theme> findByNameLike(String name, UUID member, Pageable pageable) {
+        return themeRepo.findByNameLike(name, member, pageable).map(themePersisConv::toSecond);
     }
 
     @Override

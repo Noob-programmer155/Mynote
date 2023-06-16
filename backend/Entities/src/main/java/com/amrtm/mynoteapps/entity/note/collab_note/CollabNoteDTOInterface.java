@@ -3,6 +3,7 @@ package com.amrtm.mynoteapps.entity.note.collab_note;
 import com.amrtm.mynoteapps.entity.note.NoteDTOInterface;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 
 import java.util.List;
 
@@ -13,4 +14,6 @@ public interface CollabNoteDTOInterface extends NoteDTOInterface {
     void setKeynotes(List<String> keynotes);
     SubtypeDTO getSubtype();
     void setSubtype(SubtypeDTO subtype);
+    MemberDTO getMember();
+    void setMember(MemberDTO member);
 }

@@ -6,6 +6,7 @@ import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -76,12 +77,11 @@ public class ThemeRouter {
                     try {
                         FilePart filePart = (FilePart) data.get("image");
                         FormFieldPart theme = (FormFieldPart) data.get("data");
-                        ThemeDTO themeDTO = new ObjectMapper().readValue(theme.value(), ThemeDTO.class);
-                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> themeRouter.save(themeDTO, databytes, filePart.filename(),
-                                filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                                (base) -> filePart.transferTo(base).then()));
+                        ThemeDTO themeDTO = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(theme.value(), ThemeDTO.class);
+                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> themeRouter.save(themeDTO,
+                                databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
                     } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException(e));
+                        return Mono.error(new IllegalArgumentException(e));
                     }
                 }).flatMap(item -> ServerResponse.ok().body(Mono.just(item), ThemeDTO.class));
     }
@@ -92,12 +92,11 @@ public class ThemeRouter {
                     try {
                         FilePart filePart = (FilePart) data.get("image");
                         FormFieldPart theme = (FormFieldPart) data.get("data");
-                        ThemeDTO themeDTO = new ObjectMapper().readValue(theme.value(), ThemeDTO.class);
-                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> themeRouter.update(themeDTO, databytes, filePart.filename(),
-                                filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                                (base) -> filePart.transferTo(base).then()));
+                        ThemeDTO themeDTO = new ObjectMapper().registerModule(new JavaTimeModule()).readValue(theme.value(), ThemeDTO.class);
+                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> themeRouter.update(themeDTO,
+                                databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
                     } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException(e));
+                        return Mono.error(new IllegalArgumentException(e));
                     }
                 }).flatMap(item -> ServerResponse.ok().body(Mono.just(item), ThemeDTO.class));
     }

@@ -13,13 +13,16 @@ public class Subtype {
     UUID id;
     @Column("name")
     String name;
+    @Column("color")
+    String color;
 
     public Subtype() {
     }
 
-    public Subtype(UUID id, String name) {
+    public Subtype(UUID id, String name, String color) {
         this.id = id;
         this.name = name;
+        this.color = color;
     }
 
     public UUID getId() {
@@ -38,22 +41,11 @@ public class Subtype {
         this.name = name;
     }
 
-    public static class builder {
-        UUID id;
-        String name;
+    public String getColor() {
+        return color;
+    }
 
-        public builder id(UUID id) {
-            this.id = id;
-            return this;
-        }
-
-        public builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Subtype build() {
-            return new Subtype(id,name);
-        }
+    public void setColor(String color) {
+        this.color = color;
     }
 }

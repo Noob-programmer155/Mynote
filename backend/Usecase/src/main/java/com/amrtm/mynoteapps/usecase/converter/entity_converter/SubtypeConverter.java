@@ -23,6 +23,14 @@ public class SubtypeConverter implements DataConverter<Subtype, SubtypeDTO> {
                 .build();
     }
 
+    public SubtypeDTO convertToWithColor(Subtype data,String color) {
+        return new SubtypeDTO.builder()
+                .id(data.getId())
+                .name(data.getName())
+                .color(color)
+                .build();
+    }
+
     @Override
     public Subtype deconvert(SubtypeDTO data) {
         return new Subtype.builder()

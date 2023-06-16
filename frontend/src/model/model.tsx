@@ -33,6 +33,7 @@ export interface Group extends Model {
     avatar?:string;
     isMember?:boolean;
     roleMember?:Role;
+    notificationFrom?:boolean;
 }
 
 export interface Member extends Model {
@@ -41,6 +42,7 @@ export interface Member extends Model {
     avatar?:string;
     theme?:Theme;
     role?:Role;
+    notificationFrom?:boolean;
 }
 
 export interface NotePrivate extends Model {
@@ -53,7 +55,6 @@ export interface NotePrivate extends Model {
     createdDate?: string;
     lastModifiedBy?: Pair<string,string>;
     lastModifiedDate?: string;
-    member?: Member;
 }
 
 export interface NoteCollab extends Model {

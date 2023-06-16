@@ -2,7 +2,8 @@ package com.amrtm.mynoteapps.adapter.router;
 
 import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
 import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
-import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
+import com.amrtm.mynoteapps.entity.other.obj.FilterNoteGroup;
+import com.amrtm.mynoteapps.entity.other.obj.FilterNoteMember;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.usecase.note.NoteService;
@@ -15,10 +16,12 @@ import java.util.UUID;
 public class NoteRouter<PagingAndSorting> {
     private final NoteService<PagingAndSorting> noteService;
     private final com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting;
+    private final String initUUID;
 
-    public NoteRouter(NoteService<PagingAndSorting> noteService, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
+    public NoteRouter(NoteService<PagingAndSorting> noteService, String initUUID, com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting<PagingAndSorting> pagingAndSorting) {
         this.noteService = noteService;
         this.pagingAndSorting = pagingAndSorting;
+        this.initUUID = initUUID;
     }
 
     public Flux<NotePrivateDTO> searchByTitleInMember(String name, int page, int size) {
@@ -37,12 +40,26 @@ public class NoteRouter<PagingAndSorting> {
         return noteService.findBySubtype(subtype,group);
     }
 
-    public Flux<NotePrivateDTO> filterMember(List<String> categories, List<String> severities, int page, int size) {
-        return noteService.filterMember(categories,severities,pagingAndSorting.create(page,size,pagingAndSorting.desc(),"lastModifiedDate"));
+    public Flux<NotePrivateDTO> filterMember(FilterNoteMember filterNoteMember) {
+        return noteService.filterMember(
+                (filterNoteMember.getCategories() != null && filterNoteMember.getCategories().size() > 0)?filterNoteMember.getCategories():List.of(""),
+                (filterNoteMember.getSeverities() != null && filterNoteMember.getSeverities().size() > 0)?filterNoteMember.getSeverities():List.of(""),
+                pagingAndSorting.create(
+                        (filterNoteMember.getPage() != null)?filterNoteMember.getPage():0,
+                        (filterNoteMember.getSize() != null)?filterNoteMember.getSize():10,
+                        pagingAndSorting.desc(),"lastModifiedDate"));
     }
 
-    public Flux<NoteCollabDTO> filterGroup(UUID group, List<String> severities, List<UUID> subtypes, String member, int page, int size) {
-        return noteService.filterGroup(severities,subtypes,member,group,pagingAndSorting.create(page,size,pagingAndSorting.desc(),"lastModifiedDate"));
+    public Flux<NoteCollabDTO> filterGroup(FilterNoteGroup filterNoteGroup) {
+        return noteService.filterGroup(
+                (filterNoteGroup.getSeverities() != null && filterNoteGroup.getSeverities().size() > 0)?filterNoteGroup.getSeverities():List.of(""),
+                (filterNoteGroup.getSubtypes() != null && filterNoteGroup.getSubtypes().size() > 0)?filterNoteGroup.getSubtypes():List.of(UUID.fromString(initUUID)),
+                (filterNoteGroup.getMember() != null)?filterNoteGroup.getMember():"",
+                (filterNoteGroup.getGroup() != null)?filterNoteGroup.getGroup():UUID.fromString(""),
+                pagingAndSorting.create(
+                        (filterNoteGroup.getPage() != null)?filterNoteGroup.getPage():0,
+                        (filterNoteGroup.getSize() != null)?filterNoteGroup.getSize():10,
+                        pagingAndSorting.desc(),"lastModifiedDate"));
     }
 
     public Flux<SingleData<String>> getSeverityNotePrivate() {

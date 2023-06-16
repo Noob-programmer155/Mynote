@@ -28,7 +28,7 @@ export default function ViewTest(): JSX.Element {
     const[color,setColor] = useState("#fff")
     const[keynotes,setKeynotes] = useState<string[]>([])
     const dateConverter = new DateConverter()
-    const theme = useAppSelector(state => state.profileReducer.profile?.theme)
+    const theme = useAppSelector(state => state.profileReducer.theme)
     const [theme1,setTheme1] = useState(theme)
     const profile = useAppSelector(state => state.profileReducer.profile)
     const [severity,setSeverity] = useState<Pair<string,string>>({first:"High severity",second:"#ffdff6ff"})

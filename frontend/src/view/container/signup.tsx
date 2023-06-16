@@ -9,15 +9,16 @@ interface SignInMemberInterface {
     onChangeUsername: ((text: ChangeEvent<HTMLInputElement>) => void)
     onChangePassword: ((text: ChangeEvent<HTMLInputElement>) => void)
     onChangeAvatar: ((text: ChangeEvent<HTMLInputElement>) => void)
-    onClickSignIn: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void),
+    onClickSignIn: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     theme: ThemeObj
     disableSignInBtn: boolean
     errorValidateUsername: boolean
-    avatarPreview: {alt: string, src?: string}
-    data: {username: string, password: string}
+    avatarPreview?: string
+    username: string
+    password: string
 }
 
-export function SignInMember({open, onClose, onChangePassword, onChangeUsername, onChangeAvatar, onClickSignIn, disableSignInBtn, errorValidateUsername, avatarPreview, theme, data}: SignInMemberInterface): JSX.Element {
+export function SignInMember({open, onClose, onChangePassword, onChangeUsername, onChangeAvatar, onClickSignIn, disableSignInBtn, errorValidateUsername, avatarPreview, theme, username, password}: SignInMemberInterface): JSX.Element {
     const cardSx = {
         maxWidth: "400px",
         maxHeight: "100%",
@@ -31,14 +32,14 @@ export function SignInMember({open, onClose, onChangePassword, onChangeUsername,
         padding: "1.4rem"
     } as SxProps<Theme>
     const IsImage = () => {
-        if (avatarPreview.src) {
-            return <Avatar alt={avatarPreview.alt} src={avatarPreview?.src} sx={avatarSx}/>
+        if (avatarPreview) {
+            return <Avatar alt={username} src={avatarPreview} sx={avatarSx}/>
         } else
-            return <Avatar sx={avatarSx}><Typography variant="h2">{avatarPreview.alt.charAt(0)}</Typography></Avatar>
+            return <Avatar sx={avatarSx}><Typography variant="h2">{username.charAt(0)}</Typography></Avatar>
     }
     return(
         <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2 }}
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2, maxHeight:"100vh", overflowY:"auto"}}
             open={open}
             onClick={onClose}
         >
@@ -61,8 +62,8 @@ export function SignInMember({open, onClose, onChangePassword, onChangeUsername,
                             required
                             state={StateThemeUtils.DEFAULT}
                             error={errorValidateUsername}
-                            helperText={(errorValidateUsername)?"username already exists":""}
-                            value={data.username}
+                            helperText={(errorValidateUsername)?"username already exists":"special character not allowed, except '-'"}
+                            value={username}
                             onChange={onChangeUsername}/>
                         <ThemeTextField
                             id="password-signin"
@@ -73,7 +74,7 @@ export function SignInMember({open, onClose, onChangePassword, onChangeUsername,
                             required
                             state={StateThemeUtils.DEFAULT}
                             helperText="must be adding"
-                            value={data.password}
+                            value={password}
                             onChange={onChangePassword}/>
                     </Stack>
                 </CardContent>
@@ -100,15 +101,15 @@ interface SignInGroupInterface {
     onClose: (event?:MouseEvent<HTMLElement,globalThis.MouseEvent>) => void
     onChangeUsername: ((text: ChangeEvent<HTMLInputElement>) => void)
     onChangeAvatar: ((text: ChangeEvent<HTMLInputElement>) => void)
-    onClickCreate: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void),
+    onClickCreate: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     theme: ThemeObj
     disableSignInBtn: boolean
     errorValidateUsername: boolean
-    avatarPreview: {alt: string, src?: string}
-    data: {username: string}
+    avatarPreview?: string
+    username: string
 }
 
-export function SignInGroup({open, onClose, onChangeUsername, onChangeAvatar, onClickCreate, disableSignInBtn, errorValidateUsername, avatarPreview, theme, data}: SignInGroupInterface): JSX.Element {
+export function SignInGroup({open, onClose, onChangeUsername, onChangeAvatar, onClickCreate, disableSignInBtn, errorValidateUsername, avatarPreview, theme, username}: SignInGroupInterface): JSX.Element {
     const cardSx = {
         maxWidth: "400px",
         maxHeight: "100%",
@@ -122,21 +123,21 @@ export function SignInGroup({open, onClose, onChangeUsername, onChangeAvatar, on
         padding: "1.4rem"
     } as SxProps<Theme>
     const IsImage = () => {
-        if (avatarPreview.src) {
-            return <Avatar alt={avatarPreview.alt} src={avatarPreview?.src} sx={avatarSx}/>
+        if (avatarPreview) {
+            return <Avatar alt={username} src={avatarPreview} sx={avatarSx}/>
         } else
-            return <Avatar sx={avatarSx}><Typography variant="h2">{avatarPreview.alt.charAt(0)}</Typography></Avatar>
+            return <Avatar sx={avatarSx}><Typography variant="h2">{username.charAt(0)}</Typography></Avatar>
     }
     return(
         <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2 }}
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 2, maxHeight:"100vh", overflowY:"auto"}}
             open={open}
             onClick={onClose}
         >
             <Card sx={cardSx} onClick={(e) => {e.stopPropagation()}}>
                 <CardContent>
                     <Stack direction="column" spacing={2}>
-                        <Typography variant="h4" textAlign="center" sx={{color: theme.foreground_color, fontWeight: "bold"}}>Sign In</Typography>
+                        <Typography variant="h4" textAlign="center" sx={{color: theme.foreground_color, fontWeight: "bold"}}>Create Group</Typography>
                         <Box sx={{margin:"auto !important", paddingTop:"20px"}}>
                             <IconButton id="avatar-signin" component="label" sx={{padding:"0px"}}>
                                 <input hidden accept="image/*" type="file" onChange={onChangeAvatar}/>
@@ -147,13 +148,13 @@ export function SignInGroup({open, onClose, onChangeUsername, onChangeAvatar, on
                         <ThemeTextField
                             id="username-signin-group"
                             variant="standard"
-                            label="Username"
+                            label="Group Name"
                             themeObj={theme}
                             required
                             state={StateThemeUtils.DEFAULT}
                             error={errorValidateUsername}
                             helperText={(errorValidateUsername)?"username already exists":""}
-                            value={data.username}
+                            value={username}
                             onChange={onChangeUsername}/>
                     </Stack>
                 </CardContent>

@@ -11,17 +11,19 @@ public class GroupMemberRel implements GroupMemberRelInterface<UUID> {
     Role role;
     Integer isDeleted;
     Integer isConfirmed;
+    UUID userFrom;
 
     public GroupMemberRel() {
     }
 
-    public GroupMemberRel(Long id, UUID parent, UUID child, Role role, Integer isDeleted, Integer isConfirmed) {
+    public GroupMemberRel(Long id, UUID parent, UUID child, Role role, Integer isDeleted, Integer isConfirmed, UUID userFrom) {
         this.id = id;
         this.parent = parent;
         this.child = child;
         this.role = role;
         this.isDeleted = isDeleted;
         this.isConfirmed = isConfirmed;
+        this.userFrom = userFrom;
     }
 
     public Long getId() {
@@ -77,6 +79,14 @@ public class GroupMemberRel implements GroupMemberRelInterface<UUID> {
         this.isConfirmed = isConfirmed;
     }
 
+    public UUID getUserFrom() {
+        return userFrom;
+    }
+
+    public void setUserFrom(UUID userFrom) {
+        this.userFrom = userFrom;
+    }
+
     public static class builder {
         private Long id;
         private UUID parent;
@@ -84,6 +94,7 @@ public class GroupMemberRel implements GroupMemberRelInterface<UUID> {
         private Role role;
         private Integer isDeleted;
         private Integer isConfirmed;
+        private UUID userFrom;
 
         public builder id(Long id) {
             this.id = id;
@@ -115,8 +126,13 @@ public class GroupMemberRel implements GroupMemberRelInterface<UUID> {
             return this;
         }
 
+        public builder userFrom(UUID userFrom) {
+            this.userFrom = userFrom;
+            return this;
+        }
+
         public GroupMemberRel build() {
-            return new GroupMemberRel(id,parent,child,role,isDeleted,isConfirmed);
+            return new GroupMemberRel(id,parent,child,role,isDeleted,isConfirmed,userFrom);
         }
     }
 }

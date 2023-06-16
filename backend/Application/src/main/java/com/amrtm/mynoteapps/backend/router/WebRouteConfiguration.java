@@ -30,11 +30,11 @@ public class WebRouteConfiguration {
                 .GET("/search",noteRouter::searchByTitleInMember)//
                 .GET("/category", noteRouter::getCategoryMember)//
                 .GET("/subtype", noteRouter::getSubtypeGroup)//
-                .GET("/filter",noteRouter::filterMember)//
-                .GET("/group/filter",noteRouter::filterGroup)//
                 .GET("/severities",noteRouter::getSeverityNotePrivate)//
                 .GET("/group/severities",noteRouter::getSeverityNoteCollab)//
                 .GET("/search/group",noteRouter::searchByTitleInGroup)//
+                .POST("/filter",noteRouter::filterMember)//
+                .POST("/group/filter",noteRouter::filterGroup)//
                 .POST("",noteRouter::saveNotePrivate)//
                 .POST("/group",noteRouter::saveNoteCollab)//
                 .PUT("",noteRouter::updateNotePrivate)//
@@ -85,7 +85,6 @@ public class WebRouteConfiguration {
                 .GET("",(item) -> memberRouter.getMember())//
                 .GET("/search",memberRouter::searchMember)//
                 .GET("/search/data",memberRouter::searchMemberData)//
-                .GET("/validate",memberRouter::validateNameMember)//
                 .GET("/request",memberRouter::notifWillJoinGroup)//
                 .GET("/request/reject",memberRouter::notifRejectedJoinGroup)//
                 .GET("/groups",memberRouter::groupMember)//
@@ -99,11 +98,12 @@ public class WebRouteConfiguration {
                 .DELETE("/rel",memberRouter::deleteGroup)//
                 .build();
         RouterFunction<ServerResponse> publicRoute = RouterFunctions.route()
-                .GET("/subtype",subtypeRouter::getByGroup)//
-                .GET("/subtype/search",subtypeRouter::searchByName)//
+                .GET("/member/avatar",memberRouter::getAvatar)//
                 .GET("/group/avatar",groupRouter::getAvatar)//
                 .GET("/theme/image",themeRouter::getAvatar)//
-                .GET("/member/avatar",memberRouter::getAvatar)//
+                .GET("/subtype",subtypeRouter::getByGroup)//
+                .GET("/subtype/search",subtypeRouter::searchByName)//
+                .GET("/validate",memberRouter::validateNameMember)//
                 .POST("/signup", RequestPredicates.contentType(MediaType.MULTIPART_FORM_DATA),memberRouter::signup)//
                 .POST("/login",memberRouter::login)//
                 .POST("/refresh",memberRouter::refresh)//

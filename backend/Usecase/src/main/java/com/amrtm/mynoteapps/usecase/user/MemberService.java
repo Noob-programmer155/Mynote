@@ -20,13 +20,11 @@ import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import com.amrtm.mynoteapps.usecase.security.SecurityTokenProvider;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.Loggers;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> implements UserServiceArc<MemberDTO, UUID, PagingAndSorting> {
     private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
@@ -35,13 +33,13 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
     private final GroupConverter groupConverter;
     private final LoginRepoImpl<Login> loginRepo;
     private final AuthValidation authValidation;
-    private final JoinFetchMember joinFetchMember;
+    private final JoinFetchMember<PagingAndSorting> joinFetchMember;
     private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
     private final Storage memberFileStorage;
     private final SecurityTokenProvider securityTokenProvider;
 
     public MemberService(MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupRepoImpl<GroupNote,PagingAndSorting> groupRepo, MemberConverter memberConverter,
-                         GroupConverter groupConverter, LoginRepoImpl<Login> loginRepo, AuthValidation authValidation, JoinFetchMember joinFetchMember,
+                         GroupConverter groupConverter, LoginRepoImpl<Login> loginRepo, AuthValidation authValidation, JoinFetchMember<PagingAndSorting> joinFetchMember,
                          GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation, Storage memberFileStorage, SecurityTokenProvider securityTokenProvider) {
         this.memberRepo = memberRepo;
         this.groupRepo = groupRepo;
@@ -71,7 +69,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                                 }).then(Mono.just(data)));
             } else
                 return Mono.error(new IllegalStateException("password not match"));
-        }).switchIfEmpty(Mono.error(new IllegalStateException("user does`nt sign in yet")));
+        }).switchIfEmpty(Mono.error(new AccountNotFoundException("user does`nt sign in yet")));
     }
 
     public Mono<String> signup(MemberDTO member, byte[] filePart, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
@@ -83,7 +81,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                         .flatMap(data -> loginRepo.save(new Login.builder().member(item.getId()).token(data).build())
                                 .then(Mono.just(data)));
             else
-                return Mono.error(new IllegalStateException("save user failed"));
+                return Mono.error(new IllegalStateException("save user failed, be sure check all variable before saved"));
         });
     }
 
@@ -96,7 +94,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
     public Mono<String> refresh(String token) {
         return securityTokenProvider.getUsernameAndDateExpired(token)
                 .flatMap(item -> loginRepo.findByName(item.getFirst())
-                        .switchIfEmpty(Mono.error(new IllegalStateException("you`re must login,token is expired")))
+                        .switchIfEmpty(Mono.error(new IllegalAccessException("you`re must login,token is expired")))
                         .flatMap(is -> securityTokenProvider.validateDate(item.getSecond()))
                         .flatMap(is -> {
                             if (is)
@@ -104,9 +102,9 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                             else
                                 return memberRepo.findByName(item.getFirst())
                                         .flatMap(data -> loginRepo.deleteById(data.getId()))
-                                        .then(Mono.error(new IllegalStateException("token is invalid")));
+                                        .then(Mono.error(new IllegalAccessException("token is invalid")));
                         })
-                ).switchIfEmpty(Mono.error(new IllegalAccessError("must login first")));
+                );
     }
 
     @Override
@@ -141,7 +139,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> groupRepo.findByRejectState(item,pageable)
                         .map(group -> {
-                            GroupNoteDTO groupNoteDTO = groupConverter.convertTo(group);
+                            GroupNoteDTO groupNoteDTO = groupConverter.convertToNotification(group,group.getUserFrom().equals(item));
                             groupNoteDTO.setIsMember(false);
                             return groupNoteDTO;
                         })
@@ -153,7 +151,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMapMany(item -> groupRepo.findByWaitingState(item,pageable)
                         .map(group -> {
-                            GroupNoteDTO groupNoteDTO = groupConverter.convertTo(group);
+                            GroupNoteDTO groupNoteDTO = groupConverter.convertToNotification(group,group.getUserFrom().equals(item));
                             groupNoteDTO.setIsMember(false);
                             return groupNoteDTO;
                         })
@@ -195,7 +193,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
         return authValidation.getValidation()
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChildNonAuthorize(group, item.getId()))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you not sign in this group")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you not sign in this group")))
                 .flatMap(item -> {
                     if (item != null) {
                         item.setIsConfirmed(1);
@@ -210,7 +208,7 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChildNonAuthorize(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you not sign in this group")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you not sign in this group")))
                 .flatMap(item -> {
                     if (item != null) {
                         item.setIsDeleted(1);
@@ -229,38 +227,44 @@ public class MemberService<Storage extends FileStorageImpl,PagingAndSorting> imp
                         .role(Role.MEMBER)
                         .isDeleted(0)
                         .isConfirmed(0)
+                        .userFrom(item)
                         .build()
                 ).hasElement());
     }
 
-    public Mono<Void> removeGroupRejected(UUID group){
+    public Mono<Void> removeGroupRejected(UUID group,UUID member){
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                .flatMap(item -> groupMemberRepoRelation.deleteByParentAndChild(group,item));
+                .flatMap(item -> groupMemberRepoRelation.deleteByParentAndChild(group,member));
     }
 
     public Mono<MemberDTO> save(MemberDTO data, byte[] avatar, String filename,boolean update, boolean condition, Function<Path,Mono<Void>> elseCondition) {
-        if (avatar != null)
-            return memberFileStorage.storeFile(avatar,filename,"member", data.getAvatar(),condition,elseCondition).flatMap(item -> {
-                data.setAvatar(item);
-                if (update)
-                    return memberRepo.findById(data.getId())
-                            .switchIfEmpty(Mono.error(new IllegalStateException("id not found")))
-                            .flatMap(member -> memberRepo.save(memberConverter.deconvert(data,member)))
-                            .map(memberConverter::convertTo);
-                else
-                    return memberRepo.save(memberConverter.deconvert(data))
-                            .map(memberConverter::convertTo);
-            });
+        if (avatar.length > 0)
+            return Mono.just(update)
+                    .filter(item -> item)
+                    .flatMap(is -> authValidation.getValidation())
+                    .flatMap(memberRepo::findByName)
+                    .flatMap(item ->
+                            memberFileStorage.storeFile(avatar,filename,"member", (item.getAvatar() != null && !item.getAvatar().isBlank())?item.getAvatar():"",condition,elseCondition)
+                                    .flatMap(img -> {data.setAvatar(img);return memberRepo.save(memberConverter.deconvert(data,item));}))
+                    .switchIfEmpty(memberRepo.findByName(data.getUsername())
+                            .hasElement()
+                            .filter(item -> !item)
+                            .flatMap(is -> memberFileStorage.storeFile(avatar,filename,"member", "",condition,elseCondition)
+                                            .flatMap(img -> {data.setAvatar(img);return memberRepo.save(memberConverter.deconvert(data));}))
+                            .switchIfEmpty(Mono.error(new IllegalStateException("username already exist, please use other name"))))
+                    .map(memberConverter::convertTo);
         else {
-            if (update)
-                return memberRepo.findById(data.getId())
-                        .switchIfEmpty(Mono.error(new IllegalStateException("id not found")))
-                        .flatMap(member -> memberRepo.save(memberConverter.deconvert(data, member)))
-                        .map(memberConverter::convertTo);
-            else
-                return memberRepo.save(memberConverter.deconvert(data))
-                        .map(memberConverter::convertTo);
+            return Mono.just(update)
+                    .filter(item -> item)
+                    .flatMap(is -> authValidation.getValidation())
+                    .flatMap(memberRepo::findByName)
+                    .flatMap(item -> memberRepo.save(memberConverter.deconvert(data, item)))
+                    .switchIfEmpty(memberRepo.findByName(data.getUsername())
+                            .hasElement()
+                            .filter(item -> !item).flatMap(is -> memberRepo.save(memberConverter.deconvert(data)))
+                            .switchIfEmpty(Mono.error(new IllegalStateException("username already exist, please use other name"))))
+                    .map(memberConverter::convertTo);
         }
     }
 

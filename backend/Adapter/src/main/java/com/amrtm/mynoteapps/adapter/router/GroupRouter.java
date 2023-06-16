@@ -57,28 +57,28 @@ public class GroupRouter<PagingAndSorting> {
         return groupService.getMemberGroup(group);
     }
 
-    public Mono<Boolean> updateRolePromoted(UUID member, UUID group) {
-        return groupService.updateRole(member,group,Role.ADMIN);
+    public Mono<SingleData<Boolean>> updateRolePromoted(UUID member, UUID group) {
+        return groupService.updateRole(member,group,Role.ADMIN).map(SingleData::new);
     }
 
-    public Mono<Boolean> updateRoleDemoted(UUID member, UUID group) {
-        return groupService.updateRole(member,group,Role.MEMBER);
+    public Mono<SingleData<Boolean>> updateRoleDemoted(UUID member, UUID group) {
+        return groupService.updateRole(member,group,Role.MEMBER).map(SingleData::new);
     }
 
-    public Mono<Boolean> sendRequest(UUID member, UUID group) {
-        return groupService.sendAggrement(member,group);
+    public Mono<SingleData<Boolean>> sendRequest(UUID member, UUID group) {
+        return groupService.sendAggrement(member,group).map(SingleData::new);
     }
 
-    public Mono<Boolean> confirmAggrement(UUID member, UUID group) {
-        return groupService.confirmAggrement(member,group);
+    public Mono<SingleData<Boolean>> confirmAggrement(UUID member, UUID group) {
+        return groupService.confirmAggrement(member,group).map(SingleData::new);
     }
 
-    public Mono<Boolean> rejectAggrement(UUID member, UUID group) {
-        return groupService.rejectAggrement(member,group);
+    public Mono<SingleData<Boolean>> rejectAggrement(UUID member, UUID group) {
+        return groupService.rejectAggrement(member,group).map(SingleData::new);
     }
 
-    public Mono<Boolean> removeMember(UUID member, UUID group) {
-        return groupService.removeMember(member,group).thenReturn(true);
+    public Mono<SingleData<Boolean>> removeMember(UUID member, UUID group) {
+        return groupService.removeMember(member,group).thenReturn(new SingleData<>(true));
     }
 
     public Mono<GroupNoteDTO> save(GroupNoteDTO groupNoteDTO,byte[] avatar, String filename, boolean condition, Function<Path,Mono<Void>> elseCondition) {
@@ -89,7 +89,7 @@ public class GroupRouter<PagingAndSorting> {
         return groupService.save(groupNoteDTO,avatar,filename,true,condition,elseCondition);
     }
 
-    public Mono<Boolean> delete(UUID group) {
-        return groupService.deleteById(group).thenReturn(true);
+    public Mono<SingleData<Boolean>> delete(UUID group) {
+        return groupService.deleteById(group).thenReturn(new SingleData<>(true));
     }
 }

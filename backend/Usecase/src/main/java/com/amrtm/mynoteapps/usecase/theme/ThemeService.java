@@ -1,5 +1,6 @@
 package com.amrtm.mynoteapps.usecase.theme;
 
+import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.repository.relation.ThemeMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
@@ -25,9 +26,11 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
     private final ThemeMemberRepoRelation<ThemeMemberRel> themeMemberRepoRelation;
     private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
     private final Storage themeStorage;
+    private final String delimiter;
 
-    public ThemeService(ThemeRepoImpl<Theme,PagingAndSorting> themeRepo, ThemeConverter themeConverter, AuthValidation authValidation,
+    public ThemeService(String delimiter,ThemeRepoImpl<Theme,PagingAndSorting> themeRepo, ThemeConverter themeConverter, AuthValidation authValidation,
                         ThemeMemberRepoRelation<ThemeMemberRel> themeMemberRepoRelation, MemberRepoImpl<Member,PagingAndSorting> memberRepo, Storage themeStorage) {
+        this.delimiter = delimiter;
         this.themeRepo = themeRepo;
         this.themeConverter = themeConverter;
         this.authValidation = authValidation;
@@ -49,7 +52,7 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
 
     @Override
     public Mono<byte[]> getAvatar(String name) {
-        return authValidation.getValidation().then(themeStorage.retrieveFile(name));
+        return themeStorage.retrieveFile(name);
     }
 
     @Override
@@ -65,10 +68,13 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
 
     @Override
     public Flux<ThemeDTO> findByNameLikeSearch(String name, PagingAndSorting pageable) {
-        return themeRepo.findByNameLike(name, pageable).map(themeConverter::convertTo).map(theme -> {
-            theme.setIsMyTheme(false);
-            return theme;
-        });
+        return authValidation.getValidation()
+                .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
+                .flatMapMany(id -> themeRepo.findByNameLike(name,id,pageable))
+                .map(themeConverter::convertTo).map(theme -> {
+                    theme.setIsMyTheme(false);
+                    return theme;
+                });
     }
 
     @Override
@@ -78,52 +84,65 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
 
     @Override
     public Flux<UUIDIdAndName> findByNameLike(String name, PagingAndSorting pageable) {
-        return themeRepo.findByNameLike(name, pageable).map(item -> new UUIDIdAndName.builder()
-                .id(item.getId())
-                .name(item.getName())
-                .build());
+        return authValidation.getValidation()
+                .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
+                .flatMapMany(id -> themeRepo.findByNameLike(name,id,pageable))
+                .map(item -> new UUIDIdAndName.builder()
+                    .id(item.getId())
+                    .name(item.getName())
+                    .build()
+                );
     }
 
     @Override
     public Mono<ThemeDTO> save(ThemeDTO data, byte[] filePart, String filename, boolean update,boolean condition, Function<Path,Mono<Void>> elseCondition) {
-        if (update) {
-            if (filePart != null)
-                return themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images(),condition,elseCondition)
-                        .flatMap(item -> {
-                            data.setBackground_images(item);
-                            return themeRepo.findById(data.getId())
-                                    .flatMap(theme -> themeRepo.save(themeConverter.deconvert(data,theme))
-                                            .map(themeConverter::convertTo));
-                        });
-            else
-                return themeRepo.findById(data.getId())
-                        .flatMap(item -> themeRepo.save(themeConverter.deconvert(data,item)).map(themeConverter::convertTo));
-        } else {
-            if (filePart != null)
-                return authValidation.getValidation()
-                        .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                        .flatMap(ids -> themeStorage.storeFile(filePart,filename,"theme", data.getBackground_images(),condition,elseCondition)
-                                    .flatMap(item -> {
-                                        data.setBackground_images(item);
-                                        return themeRepo.save(themeConverter.deconvert(data));
-                                    }).flatMap(theme -> themeMemberRepoRelation.save(new ThemeMemberRel.builder()
-                                            .parent(theme.getId())
-                                            .child(ids)
-                                            .isActive(0)
-                                            .build()).then(Mono.just(theme)))
-                        ).map(themeConverter::convertTo);
-            else {
-                return authValidation.getValidation()
-                        .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                        .flatMap(ids -> themeRepo.save(themeConverter.deconvert(data))
-                                    .flatMap(theme -> themeMemberRepoRelation.save(new ThemeMemberRel.builder()
-                                            .parent(theme.getId())
-                                            .child(ids)
-                                            .isActive(0)
-                                            .build()).then(Mono.just(theme)))
-                        ).map(themeConverter::convertTo);
-            }
-        }
+        return authValidation.getValidation()
+                .flatMap(memberRepo::findByName).map(Member::getId)
+                .flatMap(ids -> {
+                    if (filePart.length > 0)
+                        return Mono.just(update)
+                                .filter(is -> is)
+                                .flatMap(is -> themeRepo.findById(data.getId()))
+                                .flatMap(item ->
+                                        Mono.just(UUID.fromString((item.getCreatedBy()).split(delimiter)[1]).equals(ids))
+                                                .filter(is -> is)
+                                                .switchIfEmpty(Mono.error(new IllegalAccessError("You`re not owner !!!")))
+                                                .flatMap(is -> themeStorage.storeFile(filePart, filename, "theme", (item.getBackground_images() != null && !item.getBackground_images().isBlank())?item.getBackground_images():"", condition, elseCondition))
+                                                .flatMap(file -> {data.setBackground_images(file);return themeRepo.save(themeConverter.deconvert(data, item));}))
+                                .switchIfEmpty(
+                                        themeStorage.storeFile(filePart, filename, "theme", "", condition, elseCondition)
+                                                .flatMap(file -> {data.setBackground_images(file);return themeRepo.save(themeConverter.deconvert(data));})
+                                                .flatMap(theme -> themeMemberRepoRelation.save(new ThemeMemberRel.builder()
+                                                        .parent(theme.getId())
+                                                        .child(ids)
+                                                        .isActive(0)
+                                                        .build()).then(Mono.just(theme))))
+                                .map(item -> {
+                                    ThemeDTO theme = themeConverter.convertTo(item);
+                                    theme.setIsMyTheme(true);
+                                    return theme;
+                                });
+                    else
+                        return Mono.just(update)
+                                .filter(is -> is)
+                                .flatMap(is -> themeRepo.findById(data.getId()))
+                                .flatMap(item ->
+                                        Mono.just(UUID.fromString((item.getCreatedBy()).split(delimiter)[1]).equals(ids))
+                                                .filter(is -> is)
+                                                .switchIfEmpty(Mono.error(new IllegalAccessError("You`re not owner !!!")))
+                                                .flatMap(is -> themeRepo.save(themeConverter.deconvert(data, item))))
+                                .switchIfEmpty(themeRepo.save(themeConverter.deconvert(data))
+                                        .flatMap(theme -> themeMemberRepoRelation.save(new ThemeMemberRel.builder()
+                                                .parent(theme.getId())
+                                                .child(ids)
+                                                .isActive(0)
+                                                .build()).then(Mono.just(theme))))
+                                .map(item -> {
+                                    ThemeDTO theme = themeConverter.convertTo(item);
+                                    theme.setIsMyTheme(true);
+                                    return theme;
+                                });
+                });
     }
 
     @Override
@@ -155,7 +174,7 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> themeMemberRepoRelation.findByParentAndChild(theme,item)
-                        .switchIfEmpty(Mono.error(new IllegalStateException("You does`nt have this theme")))
+                        .switchIfEmpty(Mono.error(new IllegalAccessException("You does`nt have this theme")))
                         .flatMap(data -> themeMemberRepoRelation.deleteByParentAndChild(theme,item)));
     }
 
@@ -164,7 +183,7 @@ public class ThemeService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> themeMemberRepoRelation.findByParentAndChild(uuid,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("You does`nt have this theme")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You does`nt have this theme")))
                 .flatMap(item -> themeRepo.findById(uuid))
                 .flatMap(item -> {
                     if (item.getBackground_images() != null && !item.getBackground_images().isBlank())

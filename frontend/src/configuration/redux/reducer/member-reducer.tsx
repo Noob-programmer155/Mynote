@@ -2,9 +2,14 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Member } from "../../../model/model"
 import { IdAndName } from "../../../model/model-side"
 
+interface MemberStateObj {
+    member?: Member,
+    isRequest?: boolean
+}
+
 interface MemberState {
     member?: Member
-    memberPreview?: Member
+    memberPreview?: MemberStateObj
     members: Member[]
     openProfile: boolean
     memberGuess: IdAndName<string>[]
@@ -20,7 +25,7 @@ export const memberReducer = createSlice({
     initialState,
     reducers: {
         setMember: (state,value: PayloadAction<Member>) => {state.member = value.payload},
-        setMemberPreview: (state,value: PayloadAction<Member | undefined>) => {state.memberPreview = value.payload},
+        setMemberPreview: (state,value: PayloadAction<MemberStateObj | undefined>) => {state.memberPreview = value.payload},
         setMembers: (state,value: PayloadAction<Member[]>) => {state.members = value.payload},
         setOpenProfile: (state,value: PayloadAction<boolean>) => {state.openProfile = value.payload},
         setMemberGuess: (state,value: PayloadAction<IdAndName<string>[]>) => {state.memberGuess = value.payload}

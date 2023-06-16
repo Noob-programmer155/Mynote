@@ -36,21 +36,11 @@ class JoinFetchNotePrivate<PagingAndSorting> implements JoinFetchNotePrivateInte
     }
 
     public Flux<NotePrivateDTO> findByTitleLike(String name, UUID id, PagingAndSorting pageable) {
-        return memberRepo.findById(id).flatMapMany(member -> notePrivateRepo.findByTitleLike(name,member.getId(),pageable).flatMap(item -> {
-            if (item != null) {
-                return Mono.zip(Mono.just(item),Mono.just(member)).map(data -> entityBindFunction.NOTE_PRIVATE_DTO_BINDING(new Tuple2<>(data.getT1(),data.getT2())));
-            } else
-                return Flux.empty();
-        }));
+        return memberRepo.findById(id).flatMapMany(member -> notePrivateRepo.findByTitleLike(name,member.getId(),pageable)).map(entityBindFunction::NOTE_PRIVATE_DTO_BINDING);
     }
 
     public Flux<NotePrivateDTO> findByFilterPrivate(List<String> category, List<String> severity, UUID member, PagingAndSorting pageable) {
-        return memberRepo.findById(member).flatMapMany(memberItem -> notePrivateRepo.findByFilter(category,severity,member,pageable).distinctUntilChanged(NotePrivate::getId).flatMap(item -> {
-            if (item != null) {
-                return Mono.zip(Mono.just(item),Mono.just(memberItem)).map(data -> entityBindFunction.NOTE_PRIVATE_DTO_BINDING(new Tuple2<>(data.getT1(),data.getT2())));
-            } else
-                return Flux.empty();
-        }));
+        return memberRepo.findById(member).flatMapMany(memberItem -> notePrivateRepo.findByFilter(category,severity,member,pageable)).distinctUntilChanged(NotePrivate::getId).map(entityBindFunction::NOTE_PRIVATE_DTO_BINDING);
     }
 }
 

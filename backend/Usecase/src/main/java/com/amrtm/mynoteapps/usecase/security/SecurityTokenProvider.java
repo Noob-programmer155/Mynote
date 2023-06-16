@@ -13,11 +13,7 @@ import java.util.Date;
 public abstract class SecurityTokenProvider {
     protected abstract long lastExpired();
 
-    protected KeyPair keyInstance;
-
-    protected void initKey() throws NoSuchAlgorithmException {
-        this.keyInstance = generateKey();
-    }
+    protected abstract void initKey() throws NoSuchAlgorithmException;
 
     private KeyPair generateKey() throws NoSuchAlgorithmException {
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("RSA");

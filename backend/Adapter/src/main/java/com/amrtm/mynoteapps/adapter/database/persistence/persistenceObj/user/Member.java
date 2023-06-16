@@ -17,6 +17,8 @@ public class Member {
     String password;
     @Column("avatar")
     String avatar;
+    @Column("userFrom")
+    UUID userFrom;
 
     public Member() {
     }
@@ -26,6 +28,14 @@ public class Member {
         this.username = username;
         this.password = password;
         this.avatar = avatar;
+    }
+
+    public Member(UUID id, String username, String password, String avatar, UUID userFrom) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.avatar = avatar;
+        this.userFrom = userFrom;
     }
 
     public UUID getId() {
@@ -58,5 +68,13 @@ public class Member {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public UUID getUserFrom() {
+        return userFrom;
+    }
+
+    public void setUserFrom(UUID userFrom) {
+        this.userFrom = userFrom;
     }
 }

@@ -11,6 +11,7 @@ import com.amrtm.mynoteapps.usecase.subtype.SubtypeService;
 import com.amrtm.mynoteapps.usecase.theme.ThemeService;
 import com.amrtm.mynoteapps.usecase.user.GroupService;
 import com.amrtm.mynoteapps.usecase.user.MemberService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,8 @@ public class RouterAll {
     private final ThemeService<ThemeStorageImpl, Pageable> themeService;
     private final SubtypeService<Pageable> subtypeService;
     private final NoteService<Pageable> noteService;
+    @Value("${uuid.init}")
+    private String initUUID;
 
     public RouterAll(JwtProvider jwtProvider, GroupService<GroupStorageImpl, Pageable> groupService, MemberService<MemberStorageImpl, Pageable> memberService, ThemeService<ThemeStorageImpl, Pageable> themeService, SubtypeService<Pageable> subtypeService, NoteService<Pageable> noteService) {
         this.jwtProvider = jwtProvider;
@@ -55,6 +58,6 @@ public class RouterAll {
 
     @Bean("noteRouterSrc")
     public NoteRouter<Pageable> noteRouter() {
-        return new NoteRouter<>(noteService,new PagingAndSortingImpl());
+        return new NoteRouter<>(noteService,initUUID,new PagingAndSortingImpl());
     }
 }

@@ -8,7 +8,6 @@ public class GroupNote implements GroupNoteInterface {
     UUID id;
     String username;
     String avatar;
-
     public GroupNote() {
     }
 

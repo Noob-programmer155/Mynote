@@ -11,7 +11,8 @@ public class GroupMemberPersisConv implements PersistenceConverter<GroupMemberRe
                 from.getChild(),
                 from.getRole(),
                 from.getIsDeleted(),
-                from.getIsConfirmed()
+                from.getIsConfirmed(),
+                from.getUserFrom()
         );
     }
 
@@ -23,7 +24,8 @@ public class GroupMemberPersisConv implements PersistenceConverter<GroupMemberRe
                 from.getChild(),
                 from.getRole(),
                 from.getIsDeleted(),
-                from.getIsConfirmed()
+                from.getIsConfirmed(),
+                from.getUserFrom()
         );
     }
 }

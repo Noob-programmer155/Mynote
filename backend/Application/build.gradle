@@ -11,6 +11,7 @@ dependencies {
 	implementation project(':Entities')
 	implementation project(':Usecase')
 	implementation project(':Adapter')
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'

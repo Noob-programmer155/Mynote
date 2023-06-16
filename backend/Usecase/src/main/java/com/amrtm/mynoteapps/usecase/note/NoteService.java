@@ -27,7 +27,7 @@ import java.util.UUID;
 public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSorting> {
     private final NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo;
     private final NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo;
-    private final JoinFetchNote joinFetchNote;
+    private final JoinFetchNote<PagingAndSorting> joinFetchNote;
     private final AuthValidation authValidation;
     private final NoteCollabConverter noteCollabConverter;
     private final NotePrivateConverter notePrivateConverter;
@@ -35,7 +35,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
     private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
 
     public NoteService(NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo, NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo,
-                       JoinFetchNote joinFetchNote, AuthValidation authValidation, NoteCollabConverter noteCollabConverter, NotePrivateConverter notePrivateConverter,
+                       JoinFetchNote<PagingAndSorting> joinFetchNote, AuthValidation authValidation, NoteCollabConverter noteCollabConverter, NotePrivateConverter notePrivateConverter,
                        MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation) {
         this.notePrivateRepo = notePrivateRepo;
         this.noteCollabRepo = noteCollabRepo;
@@ -65,7 +65,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalStateException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMapMany(item -> joinFetchNote.findBySubtypeGroup(subtype, group));
     }
 
@@ -80,7 +80,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalStateException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMapMany(item -> noteCollabRepo.findSeverityByGroup(group));
     }
 
@@ -90,7 +90,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalStateException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMapMany(item -> joinFetchNote.findByTitleLike(title, null, group, pageable));
     }
 
@@ -107,7 +107,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalStateException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMapMany(item -> joinFetchNote.findByFilterGroupMember(severity, subtypeDTOS, member, group, pageable));
     }
 
@@ -123,7 +123,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                         return Mono.empty();
                     }
                 })
-                .switchIfEmpty(Mono.error(new IllegalStateException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMap(item -> {
                     if (update)
                         return noteCollabRepo.findById(data.getId()).flatMap(note ->
@@ -143,14 +143,13 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
     public Mono<NotePrivateDTO> saveNotePrivate(NotePrivateDTO data, boolean update) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                .doOnNext(item -> data.setMember(new MemberDTO.builder().id(item).build()))
                 .flatMap(item -> {
                     if (update)
                         return notePrivateRepo.findById(data.getId()).flatMap(note ->
                                         notePrivateRepo.save(notePrivateConverter.deconvert(data, note)))
                                 .map(notePrivateConverter::convertTo);
                     else
-                        return notePrivateRepo.save(notePrivateConverter.deconvert(data))
+                        return notePrivateRepo.save(notePrivateConverter.deconvert(data,item))
                                 .map(notePrivateConverter::convertTo);
                 });
     }
@@ -160,8 +159,9 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item)
+                            .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                             .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER)
-                            .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                            .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                             .flatMap(rel -> noteCollabRepo.deleteById(id))
                 );
     }
@@ -170,8 +170,8 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
     public Mono<Void> deleteNotePrivate(UUID id) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                .flatMap(item -> notePrivateRepo.findById(id).filter(note -> note.getMember() == item)
-                            .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .flatMap(item -> notePrivateRepo.findById(id).filter(note -> note.getMember().equals(item))
+                            .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                             .flatMap(is -> notePrivateRepo.deleteById(id)));
     }
 

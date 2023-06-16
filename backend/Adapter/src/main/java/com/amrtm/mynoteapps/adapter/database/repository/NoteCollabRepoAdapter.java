@@ -5,6 +5,7 @@ import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import org.springframework.data.domain.Pageable;
+import org.springframework.r2dbc.BadSqlGrammarException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -50,7 +51,7 @@ public class NoteCollabRepoAdapter implements NoteCollabRepo<NoteCollab, Pageabl
 
     @Override
     public Mono<Void> updateSubtypeGroup(UUID group, UUID oldSubtype, UUID newSubtype) {
-        return noteCollabRepo.updateSubtypeGroup(group, oldSubtype, newSubtype);
+        return noteCollabRepo.updateSubtypeGroup(group, oldSubtype, newSubtype).onErrorResume(BadSqlGrammarException.class,e -> Mono.empty());
     }
 
     @Override

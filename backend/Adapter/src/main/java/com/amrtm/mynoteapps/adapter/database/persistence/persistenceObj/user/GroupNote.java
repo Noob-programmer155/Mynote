@@ -15,6 +15,8 @@ public class GroupNote {
     String username;
     @Column("avatar")
     String avatar;
+    @Column("userFrom")
+    UUID userFrom;
 
     public GroupNote() {
     }
@@ -23,6 +25,13 @@ public class GroupNote {
         this.id = id;
         this.username = username;
         this.avatar = avatar;
+    }
+
+    public GroupNote(UUID id, String username, String avatar, UUID userFrom) {
+        this.id = id;
+        this.username = username;
+        this.avatar = avatar;
+        this.userFrom = userFrom;
     }
 
     public UUID getId() {
@@ -47,5 +56,13 @@ public class GroupNote {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public UUID getUserFrom() {
+        return userFrom;
+    }
+
+    public void setUserFrom(UUID userFrom) {
+        this.userFrom = userFrom;
     }
 }

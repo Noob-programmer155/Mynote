@@ -1,5 +1,6 @@
 package com.amrtm.mynoteapps.adapter.database.persistence.repository.user;
 
+import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
 import com.amrtm.mynoteapps.adapter.database.persistence.persistenceObj.user.GroupNote;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +18,10 @@ public interface GroupRepoImpl extends ReactiveCrudRepository<GroupNote,UUID>, R
     Flux<GroupNote> findByIdMember(UUID member);
     @Query("SELECT * FROM group_note WHERE name LIKE '%'||:name||'%'")
     Flux<GroupNote> findByNameLike(String name, Pageable pageable);
-    @Query("SELECT gn.* FROM group_note AS gn JOIN group_member AS gm ON gn.id = gm.group_note WHERE gm.member = :member AND gm.isDeleted = 1")
-    Flux<GroupNote> findByRejectState(UUID member,Pageable pageable);
-    @Query("SELECT gn.* FROM group_note AS gn JOIN group_member AS gm ON gn.id = gm.group_note WHERE gm.member = :member AND gm.isDeleted = 0 AND gm.isConfirmed = 0")
-    Flux<GroupNote> findByWaitingState(UUID member,Pageable pageable);
+    @Query("SELECT gn.id AS id,gn.name AS name,gn.avatar AS avatar,gm.userFrom AS userFrom FROM group_note AS gn JOIN group_member AS gm ON gn.id = gm.group_note WHERE gm.member = :member AND gm.isDeleted = 1")
+    Flux<GroupNotif> findByRejectState(UUID member,Pageable pageable);
+    @Query("SELECT gn.id AS id,gn.name AS name,gn.avatar AS avatar,gm.userFrom AS userFrom FROM group_note AS gn JOIN group_member AS gm ON gn.id = gm.group_note WHERE gm.member = :member AND gm.isDeleted = 0 AND gm.isConfirmed = 0")
+    Flux<GroupNotif> findByWaitingState(UUID member, Pageable pageable);
     @Query("SELECT name FROM group_note WHERE name = :name")
     Mono<Name> validateName(String name);
     @Override

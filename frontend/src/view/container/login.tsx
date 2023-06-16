@@ -27,7 +27,7 @@ export function Login({open, onClose, onChangePassword, onChangeUsername, onClic
     } as SxProps<Theme>
     return(
         <Backdrop
-            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
+            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1, maxHeight:"100vh", overflowY:"auto"}}
             open={open}
             onClick={onClose}
         >

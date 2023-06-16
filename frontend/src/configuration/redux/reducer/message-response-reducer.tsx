@@ -1,12 +1,13 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 
+interface OptionalMessage {
+    title?: string
+    onClickOk: () => void
+    isDisable?: boolean
+}
 export interface Message {
     message?: string
-    isOptional?: {
-        title?: string,
-        onClickOk: () => void
-        isDisable?: boolean
-    }
+    isOptional?: OptionalMessage
     error?: boolean
 }
 

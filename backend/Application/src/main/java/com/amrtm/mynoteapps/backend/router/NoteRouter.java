@@ -2,12 +2,10 @@ package com.amrtm.mynoteapps.backend.router;
 
 import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
 import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.other.obj.FilterNoteGroup;
+import com.amrtm.mynoteapps.entity.other.obj.FilterNoteMember;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -18,8 +16,6 @@ import java.util.UUID;
 
 @Component
 public class NoteRouter {
-    @Value("${uuid.init}")
-    private String initUUID;
     private final com.amrtm.mynoteapps.adapter.router.NoteRouter<Pageable> noteRouter;
 
     public NoteRouter(com.amrtm.mynoteapps.adapter.router.NoteRouter<Pageable> noteRouter) {
@@ -55,23 +51,11 @@ public class NoteRouter {
     }
 
     public Mono<ServerResponse> filterMember(ServerRequest request) {
-        return ServerResponse.ok().body(noteRouter.filterMember(
-                (request.queryParams().get("categories") != null)? request.queryParams().get("categories").stream().toList(): List.of(""),
-                (request.queryParams().get("severities") != null)? request.queryParams().get("severities").stream().toList(): List.of(""),
-                Integer.parseInt(request.queryParam("page").orElse("0")),
-                Integer.parseInt(request.queryParam("size").orElse("10"))
-        ), NotePrivateDTO.class);
+        return request.bodyToMono(FilterNoteMember.class).flatMap(item -> ServerResponse.ok().body(noteRouter.filterMember(item), NotePrivateDTO.class));
     }
 
     public Mono<ServerResponse> filterGroup(ServerRequest request) {
-        return ServerResponse.ok().body(noteRouter.filterGroup(
-                UUID.fromString(request.queryParam("group").orElse("")),
-                (request.queryParams().get("severities") != null)? request.queryParams().get("severities").stream().toList(): List.of(""),
-                (request.queryParams().get("subtypes") != null)?request.queryParams().get("subtypes").stream().map(UUID::fromString).toList(): List.of(UUID.fromString(initUUID)),
-                request.queryParam("member").orElse(""),
-                Integer.parseInt(request.queryParam("page").orElse("0")),
-                Integer.parseInt(request.queryParam("size").orElse("10"))
-        ), NoteCollabDTO.class);
+        return request.bodyToMono(FilterNoteGroup.class).flatMap(item -> ServerResponse.ok().body(noteRouter.filterGroup(item), NoteCollabDTO.class));
     }
 
     public Mono<ServerResponse> getSeverityNotePrivate(ServerRequest request) {

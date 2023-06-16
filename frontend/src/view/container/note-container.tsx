@@ -1,45 +1,68 @@
 import { Button, Card, CardActions, CardContent, CardProps, Chip, Collapse, IconButton, InputAdornment, InputBase, Menu, Popover, Stack, SxProps, Theme, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import React, { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import { DateConverter } from "../../adapter/converter/attribute";
 import { Theme as ThemeObj,NoteCollab, NotePrivate, Subtype } from "../../model/model";
 import { StateThemeUtils, TextFieldWithChip, ThemeButton, ThemeTextField } from "./global";
-import { Delete, Palette, TurnedInRounded } from "@mui/icons-material";
+import { Delete, OpenInNewRounded, Palette, TurnedInRounded } from "@mui/icons-material";
 import { SketchPicker } from "react-color";
+import { map, of, tap } from "rxjs";
 
 interface NoteHeaderInterface {
+    theme: ThemeObj
     noteUpdate?: NoteCollab | NotePrivate
     onChangeTitle?: ((text: ChangeEvent<HTMLInputElement>) => void)
     onChangeCategory?: ((text: ChangeEvent<HTMLInputElement>) => void)
-    onClickTrigger?: () => void
+    onTransfer?:(event:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>,data:NoteCollab|NotePrivate) => void
+    onDelete?: () => void
+    role:string
+    noteInit: NoteCollab | NotePrivate
 }
-function NoteHeader({noteUpdate,onChangeTitle,onChangeCategory,onClickTrigger}:NoteHeaderInterface) {
+function NoteHeader({theme,noteUpdate,noteInit,role,onTransfer,onChangeTitle,onChangeCategory,onDelete}:NoteHeaderInterface) {
     return(
         <>
             {(noteUpdate)?
-                <Stack>
+                <Stack sx={{width:"100%"}}>
                     {('subtype' in noteUpdate)?
                         <Typography sx={{fontSize:".8rem"}}>{(noteUpdate as NoteCollab).subtype.name}</Typography>:
                         <InputBase
+                            required
+                            onClick={(event) => {event.stopPropagation()}}
                             sx={{color:"inherit"}}
                             value={(noteUpdate as NotePrivate).category}
                             placeholder="Category"
                             onChange={onChangeCategory}
-                            onClick={onClickTrigger}
                             inputProps={{style:{fontSize:".8rem"}}}
                         />
                     }
                     <Box onClick={(event) => {event.stopPropagation()}}>
                         <InputBase
+                            required
                             sx={{color:"inherit"}}
                             value={noteUpdate.title}
                             onChange={onChangeTitle}
-                            onClick={onClickTrigger}
+                            placeholder="Title"
                             multiline
                             minRows={1}
-                            inputProps={{style:{fontSize:"2rem",fontWeight:700}}}
+                            inputProps={{style:{fontSize:"2rem",fontWeight:700,lineHeight:"2rem"}}}
                         />
                     </Box>
+                    <Stack direction={"row"}>
+                        {(onDelete && (role === "ADMIN" || role === "MANAGER"))?
+                            <Box>
+                                <IconButton sx={{color: theme.danger_background}} onClick={(event) => {event.stopPropagation();onDelete()}}>
+                                    <Delete color="inherit" sx={{width:"1.8rem",height:"1.8rem"}}/>
+                                </IconButton>
+                            </Box>:null
+                        }
+                        {(onTransfer && (role === "ADMIN" || role === "MANAGER"))? 
+                            <Box sx={{marginLeft:"20px"}}>
+                                <IconButton sx={{color: theme.default_background}} onClick={(event) => {event.stopPropagation();onTransfer(event,noteInit)}}>
+                                    <OpenInNewRounded color="inherit" sx={{width:"1.8rem",height:"1.8rem"}}/>
+                                </IconButton>
+                            </Box>:null
+                        }
+                    </Stack>
                 </Stack>:<></>
             }
         </>
@@ -47,15 +70,14 @@ function NoteHeader({noteUpdate,onChangeTitle,onChangeCategory,onClickTrigger}:N
 }
 
 interface NoteBodyInterface {
-    theme: ThemeObj,
+    theme: ThemeObj
     noteUpdate?: NoteCollab | NotePrivate
     keynoteText?: string
     onChangeDescription?: (text: ChangeEvent<HTMLTextAreaElement|HTMLInputElement>) => void
     onChangeKeynotes?: (text: ChangeEvent<HTMLTextAreaElement|HTMLInputElement>) => void
     onDeleteKeynotes?: (keynote:string) => void
-    onClickTrigger?: () => void
 }
-function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeynotes,onDeleteKeynotes,onClickTrigger}:NoteBodyInterface) {
+function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeynotes,onDeleteKeynotes}:NoteBodyInterface) {
     const [stateKeynotes,setStateKeynotes] = useState(false)
     const chipSxDefault = {
         backgroundColor: theme.default_background,
@@ -64,30 +86,34 @@ function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeyn
     } as SxProps<Theme>
     return(
         <>
-            {(noteUpdate && keynoteText && onChangeDescription && onChangeKeynotes && onDeleteKeynotes)?
+            {(noteUpdate && onChangeDescription && onChangeKeynotes && onDeleteKeynotes)?
                 <Stack direction="column" spacing={1} onClick={(event) => {event.stopPropagation()}}>
-                    <InputBase
-                        value={noteUpdate.description}
-                        onChange={onChangeDescription}
-                        onClick={onClickTrigger}
-                        multiline 
-                        minRows={2}
-                        sx={{color:"inherit"}}
-                    />
+                    <Box sx={{maxHeight:"50vh",overflowY:"auto"}}>
+                        <InputBase
+                            required
+                            value={noteUpdate.description}
+                            onChange={onChangeDescription}
+                            placeholder="Description"
+                            multiline 
+                            minRows={2}
+                            sx={{color:"inherit",width:"100%"}}
+                        />
+                    </Box>
                     <Stack onClick={() => {setStateKeynotes(!stateKeynotes)}}>
                         <Typography>Keynotes:</Typography>
                         <Stack direction="row" sx={{flexWrap:"wrap"}}>
                             {(stateKeynotes)?
                                 <TextFieldWithChip
                                     theme={theme}
-                                    onClick={onClickTrigger}
+                                    onClick={(event) => {event!.stopPropagation()}}
                                     state={StateThemeUtils.DEFAULT}
                                     dataItem={noteUpdate.keynotes?noteUpdate.keynotes:[]}
                                     text={keynoteText}
                                     onChange={onChangeKeynotes}
                                     onDelete={onDeleteKeynotes}
-                                    inputProps={{placeholder:"input keynotes",onClick:(event) => {event.stopPropagation()}}}
-                                />:noteUpdate.keynotes? noteUpdate.keynotes.map(item => <Chip label={item} sx={chipSxDefault}/>):null
+                                    mainSx={{width:"100%"}}
+                                    inputProps={{placeholder:"input keynotes",onClick:(event) => {event.stopPropagation()},required:true}}
+                                />:noteUpdate.keynotes? noteUpdate.keynotes.map((item,i) => <Chip key={"text-chip-"+i} label={item} sx={chipSxDefault}/>):null
                             }
                         </Stack>
                     </Stack>
@@ -125,7 +151,7 @@ interface NoteActionsInterface {
 }
 function NoteActions({theme,isDisable,onClickSaveAct,onClickCancelAct}:NoteActionsInterface) {
     return(
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} onClick={(event) => {event.stopPropagation()}}>
             <ThemeButton
                 id="btn-signin"
                 variant="contained" 
@@ -148,141 +174,136 @@ function NoteActions({theme,isDisable,onClickSaveAct,onClickCancelAct}:NoteActio
     )
 }
 
-interface NoteListInterface extends NoteHeaderInterface,NoteBodyInterface,NoteActionsInterface,NoteFooterInterface {
+interface NoteListInterface extends NoteHeaderInterface,NoteBodyInterface,NoteFooterInterface {
     id?: string
     cardProps?: CardProps
-    onDelete?: () => void
     onClickSave:(data:NoteCollab|NotePrivate) => void
-    onClickCancel:(dataInit: NoteCollab|NotePrivate) => void
+    onDelete?: () => void
     isContainer?:boolean
-    noteInit: NoteCollab | NotePrivate
 }
-export function NoteList({id,cardProps,theme,isContainer,isDisable,noteInit,dateConverter,onClickTrigger,onClickSave,onClickCancel,onDelete}:NoteListInterface) {
-    const RenderComp = React.memo<{theme:ThemeObj,noteInit:NoteCollab | NotePrivate}>((data) => {
-        const [open,setOpen] = useState(false)
-        const [keynoteText, setKeynoteText] = useState("")
-        const [openChangeSeverity,setOpenChangeSeverity] = useState(false)
-        const [openColorPickerSeverity,setOpenColorPickerSeverity] = useState(false)
-        const [noteUpdate,setNoteUpdate] = useState<NoteCollab|NotePrivate>()
-        useEffect(() => {
-            setNoteUpdate(noteInit)
-        },[noteInit])
-        useEffect(() => {
-            if (isContainer) {
-                setOpen(true)
-            }
-        },[isContainer])
-        const refColorPickerSeverity = useRef(null)
-        const mainSx = {
-            width: '100%',
-            backgroundColor: data.theme.background,
-            borderColor: data.theme.border_color,
-            color: data.theme.foreground
-        } as SxProps<Theme>
-
-        const onChangeKeynotes = (textWrap:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            if (noteUpdate) {
-                let data = textWrap.target.value
-                if (data.endsWith(',')) {
-                    setNoteUpdate({...noteUpdate, keynotes: (noteUpdate.keynotes)?[...noteUpdate.keynotes,data.substring(0,data.length-1)]:[data.substring(0,data.length-1)]})
-                    setKeynoteText('')
-                } else  
-                    setKeynoteText(data)
-            }
+export function NoteList({id,cardProps,theme,isContainer,noteInit,dateConverter,role,onTransfer,onClickSave,onDelete}:NoteListInterface) {
+    const [open,setOpen] = useState(false)
+    const [disable,setDisable] = useState(false)
+    const [keynoteText, setKeynoteText] = useState("")
+    const [openChangeSeverity,setOpenChangeSeverity] = useState(false)
+    const [openColorPickerSeverity,setOpenColorPickerSeverity] = useState(false)
+    const [noteUpdate,setNoteUpdate] = useState<NoteCollab|NotePrivate>()
+    useEffect(() => {
+        if (isContainer) {
+            setOpen(true)
         }
+        setNoteUpdate(noteInit)
+    },[noteInit,isContainer])
+    const refColorPickerSeverity = useRef(null)
+    const mainSx = {
+        width: '100%',
+        minWidth: '300px',
+        maxWidth: '1200px',
+        backgroundColor: theme.background,
+        borderColor: theme.border_color,
+        color: theme.foreground,
+        ...cardProps?.sx
+    } as SxProps<Theme>
 
-        return(
-            <Card id={id} sx={mainSx} {...cardProps} onClick={(event) => {event.stopPropagation();if (!isContainer) setOpen(!open)}}>
-                <CardContent sx={{backgroundColor: "rgba(255,255,255,.1)"}}>
-                    <Stack direction="row" sx={{flexGrow:1}}>
-                        <NoteHeader
-                            noteUpdate={noteUpdate}
-                            onClickTrigger={onClickTrigger}
-                            onChangeCategory={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,category:text.currentTarget.value})}}
-                            onChangeTitle={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,title:text.currentTarget.value})}}
-                        />
-                        <Stack sx={{color: (noteUpdate)? noteUpdate.severity.second:"#fff"}}>
-                            <Button
-                                variant="text"
-                                onClick={(event) => {event.stopPropagation();setOpenChangeSeverity(!openChangeSeverity)}}
-                                sx={{padding:0,color:"inherit",textTransform:"none"}}
-                            >
-                                <Stack>
-                                    <TurnedInRounded sx={{color:"inherit",width:"2.5rem",height:"2.5rem",margin:"auto"}}/>
-                                    <Typography>{(noteUpdate)?noteUpdate.severity.first:""}</Typography>
-                                </Stack>
-                            </Button>
-                            <Collapse in={openChangeSeverity}>
-                                <ThemeTextField
-                                    variant="standard"
-                                    onClick={(event) => {event.stopPropagation();if (onClickTrigger) onClickTrigger()}}
-                                    themeObj={data.theme}
-                                    state={StateThemeUtils.DEFAULT}
-                                    value={(noteUpdate)?noteUpdate.severity.first:""}
-                                    onChange={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,severity:{...noteUpdate.severity,first: text.currentTarget.value}})}}
-                                    InputProps={{
-                                        endAdornment: <InputAdornment position="end" sx={{color:data.theme.default_background}}>
-                                            <IconButton ref={refColorPickerSeverity} onClick={(event) => {event.stopPropagation();setOpenColorPickerSeverity(!openColorPickerSeverity)}} color="inherit">
-                                                <Palette sx={{color:"inherit",width:"1.5rem",height:"1.5rem",margin:"auto"}}/>
-                                            </IconButton>
-                                        </InputAdornment>
-                                    }}
-                                />
-                            </Collapse>
-                            <Menu
-                                anchorEl={refColorPickerSeverity.current}
-                                open={openColorPickerSeverity}
-                                onClose={() => {setOpenColorPickerSeverity(!openColorPickerSeverity)}}
-                                sx={{zIndex: (theme) => theme.zIndex.drawer + 2}}
-                                MenuListProps={{sx:{padding:0}}}
-                            >
-                                <Box onClick={(event) => {event.stopPropagation()}}>
-                                    <SketchPicker color={(noteUpdate)? noteUpdate.severity.second:"#fff"} onChangeComplete={(color) => {if(noteUpdate) setNoteUpdate({...noteUpdate,severity:{...noteUpdate.severity,second: color.hex.toUpperCase()+"FF"}})}}/>
-                                </Box>
-                            </Menu>
-                            {(onDelete)?
-                                <Box>
-                                    <IconButton sx={{color: data.theme.danger_background,marginLeft:"auto"}} onClick={onDelete}>
-                                        <Delete color="inherit" sx={{width:"1.8rem",height:"1.8rem"}}/>
-                                    </IconButton>
-                                </Box>:null
-                            }
-                        </Stack>
-                    </Stack>
-                </CardContent>
-                <Stack direction="column" spacing={1}>
-                    <Collapse in={open}>
-                        <CardContent>
-                            <NoteBody
-                                theme={data.theme}
-                                onClickTrigger={onClickTrigger}
-                                noteUpdate={noteUpdate}
-                                keynoteText={keynoteText}
-                                onChangeDescription={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,description:text.currentTarget.value})}}
-                                onChangeKeynotes={onChangeKeynotes}
-                                onDeleteKeynotes={(keynote) => {if (noteUpdate) setNoteUpdate({...noteUpdate,keynotes:noteUpdate.keynotes!.filter(item => item !== keynote)})}}
+    const onChangeKeynotes = (textWrap:ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (noteUpdate) {
+            let data = textWrap.target.value
+            if (data.endsWith(',')) {
+                setNoteUpdate({...noteUpdate, keynotes: (noteUpdate.keynotes)?[...noteUpdate.keynotes,data.substring(0,data.length-1)]:[data.substring(0,data.length-1)]})
+                setKeynoteText('')
+            } else  
+                setKeynoteText(data)
+        }
+    }
+
+    return(
+        <Card id={id} {...cardProps} sx={mainSx} onClick={(event) => {event.stopPropagation();if (!isContainer) setOpen(!open)}}>
+            <CardContent sx={{backgroundColor: "rgba(255,255,255,.1)"}}>
+                <Stack direction="row" sx={{flexGrow:1}}>
+                    <NoteHeader
+                        theme={theme}
+                        noteInit={noteInit}
+                        noteUpdate={noteUpdate}
+                        onTransfer={onTransfer}
+                        role={role}
+                        onChangeCategory={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,category:text.currentTarget.value})}}
+                        onChangeTitle={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,title:text.currentTarget.value})}}
+                        onDelete={onDelete}
+                    />
+                    <Stack sx={{color: (noteUpdate)? noteUpdate.severity.second:"#fff"}}>
+                        <Button
+                            variant="text"
+                            onClick={(event) => {event.stopPropagation();setOpenChangeSeverity(!openChangeSeverity)}}
+                            sx={{padding:0,color:"inherit",textTransform:"none"}}
+                        >
+                            <Stack sx={{marginRight:(openChangeSeverity)?"38%":0,marginLeft:"auto",transition:"all .25s ease-out"}}>
+                                <TurnedInRounded sx={{color:"inherit",width:"2.5rem",height:"2.5rem",margin:"auto"}}/>
+                                <Typography>{(noteUpdate)?noteUpdate.severity.first:""}</Typography>
+                            </Stack>
+                        </Button>
+                        <Collapse in={openChangeSeverity}>
+                            <ThemeTextField
+                                variant="standard"
+                                themeObj={theme}
+                                state={StateThemeUtils.DEFAULT}
+                                value={(noteUpdate)?noteUpdate.severity.first:""}
+                                onChange={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,severity:{...noteUpdate.severity,first: text.currentTarget.value}})}}
+                                InputProps={{
+                                    endAdornment: <InputAdornment position="end" sx={{color:theme.default_background}}>
+                                        <IconButton ref={refColorPickerSeverity} onClick={(event) => {event.stopPropagation();setOpenColorPickerSeverity(!openColorPickerSeverity)}} color="inherit">
+                                            <Palette sx={{color:"inherit",width:"1.5rem",height:"1.5rem",margin:"auto"}}/>
+                                        </IconButton>
+                                    </InputAdornment>
+                                }}
                             />
-                        </CardContent>
-                        <CardActions sx={{justifyContent:"center"}}>
-                            {(noteUpdate && noteInit !== noteUpdate)?
-                                <NoteActions
-                                    theme={data.theme}
-                                    isDisable={isDisable}
-                                    onClickSaveAct={() => {onClickSave(noteUpdate)}}
-                                    onClickCancelAct={() => {onClickCancel(noteInit)}}
-                                />:null
-                            }
-                        </CardActions>
-                        <CardContent sx={{backgroundColor: "rgba(0,0,0,.25)"}}>
+                        </Collapse>
+                        <Menu
+                            anchorEl={refColorPickerSeverity.current}
+                            open={openColorPickerSeverity}
+                            onClose={() => {setOpenColorPickerSeverity(!openColorPickerSeverity)}}
+                            sx={{zIndex: (theme) => theme.zIndex.drawer + 2}}
+                            MenuListProps={{sx:{padding:0}}}
+                        >
+                            <Box onClick={(event) => {event.stopPropagation()}}>
+                                <SketchPicker color={(noteUpdate)? noteUpdate.severity.second:"#fff"} onChangeComplete={(color) => {if(noteUpdate) setNoteUpdate({...noteUpdate,severity:{...noteUpdate.severity,second: color.hex.toUpperCase()+"FF"}})}}/>
+                            </Box>
+                        </Menu>
+                    </Stack>
+                </Stack>
+            </CardContent>
+            <Collapse in={open}>
+                <Stack direction="column" spacing={1}>
+                    <CardContent>
+                        <NoteBody
+                            theme={theme}
+                            noteUpdate={noteUpdate}
+                            keynoteText={keynoteText}
+                            onChangeDescription={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,description:text.currentTarget.value})}}
+                            onChangeKeynotes={onChangeKeynotes}
+                            onDeleteKeynotes={(keynote) => {if (noteUpdate) setNoteUpdate({...noteUpdate,keynotes:noteUpdate.keynotes!.filter(item => item !== keynote)})}}
+                        />
+                    </CardContent>
+                    <CardActions sx={{justifyContent:"center"}}>
+                        {(noteUpdate && noteInit !== noteUpdate)?
+                            <NoteActions
+                                theme={theme}
+                                isDisable={disable}
+                                onClickSaveAct={() => {of({}).pipe(tap(() => {setDisable(true)}),map(() => {onClickSave(noteUpdate)}),tap(() => {setDisable(false)})).subscribe()}}
+                                onClickCancelAct={() => {setNoteUpdate(noteInit)}}
+                            />:null
+                        }
+                    </CardActions>
+                    <CardContent sx={{backgroundColor: "rgba(0,0,0,.25)"}}>
+                        {(isContainer)?
+                            null:
                             <NoteFooter
-                                noteUpdate={noteUpdate}
+                              noteUpdate={noteUpdate}
                                 dateConverter={dateConverter}
                             />
-                        </CardContent>
-                    </Collapse>
+                        }
+                    </CardContent>
                 </Stack>
-            </Card>
-        )
-    })
-    return <RenderComp theme={theme} noteInit={noteInit}/>
+            </Collapse>
+        </Card>
+    )
 }

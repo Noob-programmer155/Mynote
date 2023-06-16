@@ -141,11 +141,10 @@ public class GroupRouter {
                 FilePart filePart = (FilePart) data.get("image");
                 FormFieldPart group = (FormFieldPart) data.get("data");
                 GroupNoteDTO groupdt = new ObjectMapper().readValue(group.value(), GroupNoteDTO.class);
-                return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> groupRouter.save(groupdt, databytes, filePart.filename(),
-                        filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                        (base) -> filePart.transferTo(base).then()));
+                return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> groupRouter.save(groupdt,
+                        databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
             } catch (JsonProcessingException e) {
-                return Mono.error(new RuntimeException(e));
+                return Mono.error(new IllegalArgumentException(e));
             }
         }).flatMap(item -> ServerResponse.ok().body(Mono.just(item),GroupNoteDTO.class));
     }
@@ -157,11 +156,10 @@ public class GroupRouter {
                     FilePart filePart = (FilePart) data.get("image");
                     FormFieldPart group = (FormFieldPart) data.get("data");
                     GroupNoteDTO groupdata = new ObjectMapper().readValue(group.value(), GroupNoteDTO.class);
-                    return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> groupRouter.update(groupdata, databytes, filePart.filename(),
-                            filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                            (base) -> filePart.transferTo(base).then()));
+                    return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> groupRouter.update(groupdata,
+                            databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
                 } catch (JsonProcessingException e) {
-                    return Mono.error(new RuntimeException(e));
+                    return Mono.error(new IllegalArgumentException(e));
                 }
             }).flatMap(item -> ServerResponse.ok().body(Mono.just(item),GroupNoteDTO.class));
     }

@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface ThemeRepo<E extends MyNoteEntity,ID,PagingAndSorting> extends MyNoteRepo<E, ID> {
     Mono<E> findByName(String name);
-    Flux<E> findByNameLike(String name, PagingAndSorting pageable);
+    Flux<E> findByNameLike(String name, ID member, PagingAndSorting pageable);
     Flux<E> findByNameLikeAndMember(String name, ID member, PagingAndSorting pageable);
     Mono<E> findByIdMemberActive(ID member);
 }

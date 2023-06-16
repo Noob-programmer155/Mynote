@@ -2,6 +2,9 @@ package com.amrtm.mynoteapps.backend.router;
 
 import com.amrtm.mynoteapps.backend.configuration.converter.DataBufferMultipartToByteArray;
 import com.amrtm.mynoteapps.backend.configuration.security.impl.PasswordEncoderClass;
+import com.amrtm.mynoteapps.entity.login.LoginDTO;
+import com.amrtm.mynoteapps.entity.login.PasswordDTO;
+import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
 import com.amrtm.mynoteapps.entity.user.group.impl.GroupNoteDTO;
@@ -38,11 +41,10 @@ public class MemberRouter {
     }
 
     public Mono<ServerResponse> login(ServerRequest request) {
-        return ServerResponse.ok().body(memberRouterSrc.login(
-                request.queryParam("username").orElse(""),
-                request.queryParam("password").orElse(""),
+        return request.bodyToMono(LoginDTO.class).flatMap(data -> ServerResponse.ok().body(memberRouterSrc.login(
+                data.getUsername(),data.getPassword(),
                 (item) -> passwordEncoderClass.matches(item.getFirst(), item.getSecond())
-        ), SingleData.class);
+        ), SingleData.class));
     }
 
     public Mono<ServerResponse> signup(ServerRequest request) {
@@ -52,11 +54,10 @@ public class MemberRouter {
                 FilePart filePart = (FilePart) data.get("image");
                 FormFieldPart member = (FormFieldPart) data.get("data");
                 MemberDTO memberDTO = new ObjectMapper().readValue(member.value(), MemberDTO.class);
-                return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> memberRouterSrc.signup(memberDTO, databytes, filePart.filename(),
-                        filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                        (base) -> filePart.transferTo(base).then()));
+                return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> memberRouterSrc.signup(memberDTO,
+                        databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
             } catch (JsonProcessingException e) {
-                return Mono.error(new RuntimeException(e));
+                return Mono.error(new IllegalArgumentException(e));
             }
         }).flatMap(item -> ServerResponse.ok().body(Mono.just(item),SingleData.class));
     }
@@ -110,7 +111,7 @@ public class MemberRouter {
         return ServerResponse.ok().body(memberRouterSrc.notifWillJoinGroup(
                 Integer.parseInt(request.queryParam("page").orElse("0")),
                 Integer.parseInt(request.queryParam("size").orElse("10"))
-        ), GroupNoteDTO.class);
+        ), GroupNotif.class);
     }
 
     public Mono<ServerResponse> notifRejectedJoinGroup(ServerRequest request) {
@@ -127,11 +128,10 @@ public class MemberRouter {
     }
 
     public Mono<ServerResponse> updatePassword(ServerRequest request) {
-        return memberRouterSrc.updatePassword(
-                    request.queryParam("newPassword").orElse(""),
-                    request.queryParam("oldPassword").orElse(""),
+        return request.bodyToMono(PasswordDTO.class).flatMap(password -> memberRouterSrc.updatePassword(
+                    password.getNewPassword(),password.getOldPassword(),
                     (item) -> passwordEncoderClass.matches(item.getFirst(), item.getSecond())
-                ).flatMap(item -> ServerResponse.ok().body(Mono.just(item),SingleData.class));
+                ).flatMap(item -> ServerResponse.ok().body(Mono.just(item),SingleData.class)));
     }
 
     public Mono<ServerResponse> groupConfirmation(ServerRequest request) {
@@ -160,11 +160,10 @@ public class MemberRouter {
                         FormFieldPart member = (FormFieldPart) data.get("data");
                         MemberDTO memberDTO = new ObjectMapper().readValue(member.value(), MemberDTO.class);
                         memberDTO.setPassword(null);
-                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> memberRouterSrc.update(memberDTO, databytes, filePart.filename(),
-                                filePart.headers().getContentType() != MediaType.IMAGE_JPEG,
-                                (base) -> filePart.transferTo(base).then()));
+                        return DataBufferMultipartToByteArray.transform(filePart).flatMap(databytes -> memberRouterSrc.update(memberDTO,
+                                databytes.getT1(), databytes.getT2(), databytes.getT3(), databytes.getT4()));
                     } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException(e));
+                        return Mono.error(new IllegalArgumentException(e));
                     }
                 }).flatMap(item -> ServerResponse.ok().body(Mono.just(item),SingleData.class));
     }
@@ -177,7 +176,8 @@ public class MemberRouter {
 
     public Mono<ServerResponse> deleteGroup(ServerRequest request) {
         return memberRouterSrc.deleteGroup(
-                        UUID.fromString(request.queryParam("group").orElse(""))
+                        UUID.fromString(request.queryParam("group").orElse("")),
+                        UUID.fromString(request.queryParam("member").orElse(""))
                 ).flatMap(item -> ServerResponse.ok().body(Mono.just(item), SingleData.class));
     }
 }

@@ -157,3 +157,16 @@ ALTER TABLE group_subtype ADD index INT
 --comment alter group_subtype-2
 ALTER TABLE group_subtype ADD color VARCHAR(50);
 ALTER TABLE subtype DROP color;
+
+--changeset Amar:alter-table-group_member-2
+--comment alter group_member-2
+ALTER TABLE group_member ADD userFrom uuid;
+
+--changeset Amar:alter-table-user-2
+--comment alter user-2
+ALTER TABLE group_note ADD userFrom uuid;
+ALTER TABLE member ADD userFrom uuid;
+
+--changeset Amar:alter-table-subtype-3
+--comment alter subtype-3
+ALTER TABLE subtype ADD color VARCHAR(50);

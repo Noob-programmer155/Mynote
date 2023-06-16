@@ -36,6 +36,7 @@ public class EntityBindFunctionImpl implements EntityBindFunction {
                     .background_images(item.getT2().getBackground_images())
                     .border_color(item.getT2().getBorder_color())
                     .background_color(item.getT2().getBackground_color())
+                    .foreground_color(item.getT2().getForeground_color())
                     .default_background(item.getT2().getDefault_background())
                     .default_foreground(item.getT2().getDefault_foreground())
                     .info_background(item.getT2().getInfo_background())
@@ -46,6 +47,7 @@ public class EntityBindFunctionImpl implements EntityBindFunction {
                     .foreground(item.getT2().getForeground())
                     .createdBy(Pair.of(item.getT2().getCreatedBy().split(delimiter)[0],UUID.fromString(item.getT2().getCreatedBy().split(delimiter)[1])))
                     .createdDate(item.getT2().getCreatedDate())
+                    .isMyTheme(true)
                     .build():null
             ).build();
     }
@@ -73,22 +75,18 @@ public class EntityBindFunctionImpl implements EntityBindFunction {
             ).build();
     }
 
-    public NotePrivateDTO NOTE_PRIVATE_DTO_BINDING(Tuple2<NotePrivate, Member> item) {
+    public NotePrivateDTO NOTE_PRIVATE_DTO_BINDING(NotePrivate item) {
         return new NotePrivateDTO.builder()
-            .id(item.getT1().getId())
-            .title(item.getT1().getTitle())
-            .category(item.getT1().getCategory())
-            .severity(Pair.of(item.getT1().getSeverity().split(delimiter)[0],item.getT1().getSeverity().split(delimiter)[1]))
-            .description(item.getT1().getDescription())
-            .keynotes((item.getT1().getKeynotes() != null && !item.getT1().getKeynotes().isBlank())?Arrays.stream((item.getT1().getKeynotes()).split(delimiter)).toList():null)
-            .createdBy(Pair.of((item.getT1().getCreatedBy()).split(delimiter)[0],UUID.fromString((item.getT1().getCreatedBy()).split(delimiter)[1])))
-            .createdDate(item.getT1().getCreatedDate())
-            .lastModifiedBy(Pair.of((item.getT1().getLastModifiedBy()).split(delimiter)[0],UUID.fromString((item.getT1().getLastModifiedBy()).split(delimiter)[1])))
-            .lastModifiedDate(item.getT1().getLastModifiedDate())
-            .member(new MemberDTO.builder()
-                    .id(item.getT2().getId())
-                    .username(item.getT2().getUsername())
-                    .avatar(item.getT2().getAvatar()).build()
-            ).build();
+            .id(item.getId())
+            .title(item.getTitle())
+            .category(item.getCategory())
+            .severity(Pair.of(item.getSeverity().split(delimiter)[0],item.getSeverity().split(delimiter)[1]))
+            .description(item.getDescription())
+            .keynotes((item.getKeynotes() != null && !item.getKeynotes().isBlank())?Arrays.stream((item.getKeynotes()).split(delimiter)).toList():null)
+            .createdBy(Pair.of((item.getCreatedBy()).split(delimiter)[0],UUID.fromString((item.getCreatedBy()).split(delimiter)[1])))
+            .createdDate(item.getCreatedDate())
+            .lastModifiedBy(Pair.of((item.getLastModifiedBy()).split(delimiter)[0],UUID.fromString((item.getLastModifiedBy()).split(delimiter)[1])))
+            .lastModifiedDate(item.getLastModifiedDate())
+            .build();
     }
 }

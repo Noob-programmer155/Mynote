@@ -32,7 +32,7 @@ public class JoinFetchMember<PagingAndSorting> implements JoinFetchMemberInterfa
         return memberRepo.findByName(name).flatMap(item -> themeRepo.findByIdMemberActive(item.getId())
                         .switchIfEmpty(Mono.just(new Theme.builder()
                                 .id(UUID.fromString(uuid))
-                                .name("theme1")
+                                .name("defaults")
                                 .foreground_color("#363535ff")
                                 .background_color("#ffffffff")
                                 .border_color("#fcd403ff")

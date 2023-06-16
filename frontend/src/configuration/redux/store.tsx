@@ -8,19 +8,31 @@ import GroupReducer from "./reducer/group-reducer";
 import NoteReducer from "./reducer/note-reducer";
 import NotificationReducer from "./reducer/notification-reducer";
 import SearchAndFilterReducer from "./reducer/search-reducer";
+import storage from 'redux-persist/lib/storage'
+import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistReducer } from "redux-persist";
 
+const persistRedux = persistReducer({
+    key: 'root',
+    version: 1,
+    storage
+},MessageReducer)
 export const store = configureStore({
-    reducer:{
+    reducer: {
         notificationReducer: NotificationReducer,
-        messageRespon: MessageReducer,
         themeReducer: ThemeReducer,
         profileReducer: ProfileReducer,
         routeReducer: RouteReducer,
         memberReducer: MemberReducer,
         groupReducer: GroupReducer,
         noteReducer: NoteReducer,
-        searchAndFilterReducer: SearchAndFilterReducer
-    }
+        searchAndFilterReducer: SearchAndFilterReducer,
+        messageRespon:persistRedux
+    },
+    middleware: (conf) => conf({
+        serializableCheck:{
+            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
+        }
+    })
 })
 
 export type RootState = ReturnType<typeof store.getState>

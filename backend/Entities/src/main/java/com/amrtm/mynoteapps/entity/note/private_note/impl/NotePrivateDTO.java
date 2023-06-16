@@ -19,11 +19,10 @@ public class NotePrivateDTO implements PrivateNoteDTOInterface {
     LocalDateTime createdDate;
     Pair<String,UUID> lastModifiedBy;
     LocalDateTime lastModifiedDate;
-    MemberDTO member;
 
     public NotePrivateDTO() {}
 
-    public NotePrivateDTO(UUID id, String title, String category, Pair<String, String> severity, String description, List<String> keynotes, Pair<String, UUID> createdBy, LocalDateTime createdDate, Pair<String, UUID> lastModifiedBy, LocalDateTime lastModifiedDate, MemberDTO member) {
+    public NotePrivateDTO(UUID id, String title, String category, Pair<String, String> severity, String description, List<String> keynotes, Pair<String, UUID> createdBy, LocalDateTime createdDate, Pair<String, UUID> lastModifiedBy, LocalDateTime lastModifiedDate) {
         this.id = id;
         this.title = title;
         this.category = category;
@@ -34,7 +33,6 @@ public class NotePrivateDTO implements PrivateNoteDTOInterface {
         this.createdDate = createdDate;
         this.lastModifiedBy = lastModifiedBy;
         this.lastModifiedDate = lastModifiedDate;
-        this.member = member;
     }
 
     public UUID getId() {
@@ -122,14 +120,6 @@ public class NotePrivateDTO implements PrivateNoteDTOInterface {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-    public MemberDTO getMember() {
-        return member;
-    }
-
-    public void setMember(MemberDTO member) {
-        this.member = member;
-    }
-
     public static class builder {
         UUID id;
         String title;
@@ -141,7 +131,6 @@ public class NotePrivateDTO implements PrivateNoteDTOInterface {
         LocalDateTime createdDate;
         Pair<String,UUID> lastModifiedBy;
         LocalDateTime lastModifiedDate;
-        MemberDTO member;
 
         public builder id(UUID id) {
             this.id = id;
@@ -193,13 +182,8 @@ public class NotePrivateDTO implements PrivateNoteDTOInterface {
             return this;
         }
 
-        public builder member(MemberDTO member) {
-            this.member = member;
-            return this;
-        }
-
         public NotePrivateDTO build() {
-            return new NotePrivateDTO(id,title,category,severity,description,keynotes,createdBy,createdDate,lastModifiedBy,lastModifiedDate,member);
+            return new NotePrivateDTO(id,title,category,severity,description,keynotes,createdBy,createdDate,lastModifiedBy,lastModifiedDate);
         }
     }
 }

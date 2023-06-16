@@ -55,7 +55,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item.getId())
                         .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .then(groupSubtypeRepoRelation.updateIndex(indexTo,group,subtypeFrom))
                 .then(groupSubtypeRepoRelation.updateIndex(indexFrom,group,subtypeTo))
                 .then(Mono.just(true));
@@ -67,7 +67,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item.getId())
                         .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .then(groupSubtypeRepoRelation.deleteByParentAndChild(group,oldSubtype)
                         .then(subtypeRepo.findByName(newSubtype.getName()))
                         .switchIfEmpty(subtypeRepo.save(subtypeConverter.deconvert(newSubtype)))
@@ -77,7 +77,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                                         .index(index)
                                         .color(newSubtype.getColor()).build())
                                 .flatMap(rel -> noteCollabRepo.updateSubtypeGroup(rel.getParent(),oldSubtype,rel.getChild()))
-                                .then(Mono.just(subtypeConverter.convertTo(newSubtypeDt)))));
+                                .then(Mono.just(subtypeConverter.convertToWithColor(newSubtypeDt, newSubtype.getColor())))));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item)
                         .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> subtypeRepo.findByName(data.getName())
                         .switchIfEmpty(subtypeRepo.save(subtypeConverter.deconvert(data)))
                         .flatMap(subtype -> groupSubtypeRepoRelation.save(new GroupSubtypeRel.builder()
@@ -95,7 +95,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                                 .index(index)
                                 .color(data.getColor()).build())
                                 .then(Mono.just(subtype)))
-                        .map(subtypeConverter::convertTo)
+                        .map(subtype -> subtypeConverter.convertToWithColor(subtype,data.getColor()))
                 );
     }
 
@@ -105,9 +105,9 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item.getId())
                         .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> noteCollabRepo.deleteByGroupAndSubtype(group,subtype))
-                .flatMap(item -> groupSubtypeRepoRelation.deleteByParentAndChild(group,subtype));
+                .then(groupSubtypeRepoRelation.deleteByParentAndChild(group,subtype));
     }
 
     // for test only
@@ -117,7 +117,7 @@ public class SubtypeService<PagingAndSorting> implements SubtypeServiceArc<Subty
                 .flatMap(memberRepo::findByName)
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item.getId())
                         .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> subtypeRepo.deleteById(subtype));
     }
 }

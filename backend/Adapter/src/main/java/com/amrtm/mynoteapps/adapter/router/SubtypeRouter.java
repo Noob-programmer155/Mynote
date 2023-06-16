@@ -26,8 +26,8 @@ public class SubtypeRouter<PagingAndSorting> {
         return subtypeService.findByName(name, pagingAndSorting.create(page,size,pagingAndSorting.asc(),"name"));
     }
 
-    public Mono<Boolean> updateIndex(Integer indexFrom, Integer indexTo, UUID subtypeFrom, UUID subtypeTo, UUID group) {
-        return subtypeService.updateIndex(indexFrom,indexTo,subtypeFrom,subtypeTo,group);
+    public Mono<SingleData<Boolean>> updateIndex(Integer indexFrom, Integer indexTo, UUID subtypeFrom, UUID subtypeTo, UUID group) {
+        return subtypeService.updateIndex(indexFrom,indexTo,subtypeFrom,subtypeTo,group).map(SingleData::new);
     }
 
     public Mono<SubtypeDTO> update(Integer index,UUID oldSubtype,SubtypeDTO newSubtype, UUID group) {

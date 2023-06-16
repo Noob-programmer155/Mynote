@@ -1,6 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.MemberPersisConv;
+import com.amrtm.mynoteapps.entity.other.obj.MemberNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
@@ -39,13 +40,13 @@ public class MemberRepoAdapter implements MemberRepoImpl<Member, Pageable> {
     }
 
     @Override
-    public Flux<Member> findByWaitingState(UUID group, Pageable pageable) {
-        return memberRepo.findByWaitingState(group, pageable).map(memberPersisConv::toSecond);
+    public Flux<MemberNotif> findByWaitingState(UUID group, Pageable pageable) {
+        return memberRepo.findByWaitingState(group, pageable);
     }
 
     @Override
-    public Flux<Member> findByRejectState(UUID group, Pageable pageable) {
-        return memberRepo.findByRejectState(group, pageable).map(memberPersisConv::toSecond);
+    public Flux<MemberNotif> findByRejectState(UUID group, Pageable pageable) {
+        return memberRepo.findByRejectState(group, pageable);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
+import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
 import com.amrtm.mynoteapps.entity.user.group.impl.GroupNoteDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
@@ -11,6 +12,15 @@ public class GroupConverter implements DataConverter<GroupNote, GroupNoteDTO> {
                 .id(data.getId())
                 .username(data.getUsername())
                 .avatar(data.getAvatar())
+                .build();
+    }
+
+    public GroupNoteDTO convertToNotification(GroupNotif data,boolean notification) {
+        return new GroupNoteDTO.builder()
+                .id(data.getId())
+                .username(data.getUsername())
+                .avatar(data.getAvatar())
+                .notificationFrom(notification)
                 .build();
     }
 

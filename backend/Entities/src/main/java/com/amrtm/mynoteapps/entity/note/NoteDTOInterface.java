@@ -21,6 +21,4 @@ public interface NoteDTOInterface extends MyNoteEntity {
     void setLastModifiedBy(Pair<String,UUID> lastModifiedBy);
     LocalDateTime getLastModifiedDate();
     void setLastModifiedDate(LocalDateTime lastModifiedDate);
-    MemberDTO getMember();
-    void setMember(MemberDTO member);
 }

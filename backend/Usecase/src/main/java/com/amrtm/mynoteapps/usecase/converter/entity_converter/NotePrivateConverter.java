@@ -32,12 +32,11 @@ public class NotePrivateConverter implements DataConverter<NotePrivate, NotePriv
                 .createdDate(data.getCreatedDate())
                 .lastModifiedBy(Pair.of((data.getLastModifiedBy()).split(delimiter)[0], UUID.fromString((data.getLastModifiedBy()).split(delimiter)[1])))
                 .lastModifiedDate(data.getLastModifiedDate())
-                .member(new MemberDTO.builder().id(data.getMember()).build())
                 .build();
     }
-
     @Override
-    public NotePrivate deconvert(NotePrivateDTO data) {
+    public NotePrivate deconvert(NotePrivateDTO data) {throw new RuntimeException("deprecated");}
+    public NotePrivate deconvert(NotePrivateDTO data,UUID member) {
         String keynotes = null;
         if (data.getKeynotes() != null && !data.getKeynotes().isEmpty()) {
             StringJoiner sj = new StringJoiner(delimiter);
@@ -51,7 +50,7 @@ public class NotePrivateConverter implements DataConverter<NotePrivate, NotePriv
                 .category((data.getCategory() != null && !data.getCategory().isBlank())?data.getCategory():"uncategorized")
                 .severity(data.getSeverity().getFirst()+delimiter+data.getSeverity().getSecond())
                 .keynotes(keynotes)
-                .member(data.getMember().getId())
+                .member(member)
                 .build();
     }
 

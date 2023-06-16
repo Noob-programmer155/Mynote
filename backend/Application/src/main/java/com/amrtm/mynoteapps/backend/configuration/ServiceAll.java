@@ -94,6 +94,7 @@ public class ServiceAll {
     @Bean
     public ThemeService<ThemeStorageImpl, Pageable> themeService() {
         return new ThemeService<>(
+                delimiter,
                 themeRepoAdapter,
                 new ThemeConverter(delimiter),
                 authValidationClass,

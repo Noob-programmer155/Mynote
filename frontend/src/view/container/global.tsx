@@ -1,5 +1,5 @@
 import { ArrowDropDown, Cancel, SearchRounded } from "@mui/icons-material";
-import { Button, Chip, IconButton, IconButtonProps, InputAdornment, InputBase, styled, TextField, SxProps, Theme, Stack, InputBaseProps, StackProps, Box, Fab, Tooltip, Paper, Typography, Menu, MenuItem, CircularProgress } from "@mui/material";
+import { Button, Chip, IconButton, IconButtonProps, InputAdornment, InputBase, styled, TextField, SxProps, Theme, Stack, InputBaseProps, StackProps, Box, Fab, Tooltip, Paper, Typography, Menu, MenuItem, CircularProgress, BoxProps, Switch, alpha } from "@mui/material";
 import { ChangeEvent, MouseEvent, RefObject, useRef } from "react";
 import { Theme as ThemeObj } from "../../model/model";
 import { IdAndName } from "../../model/model-side";
@@ -25,9 +25,6 @@ export const ThemeTextField = styled(TextField, {
     shouldForwardProp: (props) => props !== ("themeObj" || "state")
 })<{themeObj: ThemeObj,state: StateThemeUtils}>((props) => ({
     "& label": {
-        color: getUtilsTheme(props.themeObj,props.state).foreground
-    },
-    "& label.Mui-focused": {
         color: getUtilsTheme(props.themeObj,props.state).background
     },
     "& .MuiInput-root": {
@@ -64,8 +61,25 @@ export const ThemeTextField = styled(TextField, {
         "&:hover fieldset": {
             borderColor: getUtilsTheme(props.themeObj,props.state).background
         },
+    },
+    "& .MuiFormHelperText-root": {
+        color: props.themeObj.foreground_color
     }
 }))
+
+export const ThemeSwitch = styled(Switch, {
+    shouldForwardProp: (props:PropertyKey) => props !== "themeObj"
+})<{themeObj:ThemeObj}>((props) => ({
+    '& .MuiSwitch-switchBase.Mui-checked': {
+        color: props.themeObj.default_background,
+        '&:hover': {
+            backgroundColor: alpha(props.themeObj.default_background, props.theme.palette.action.hoverOpacity),
+        },
+    },
+    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+    backgroundColor: props.themeObj.default_background,
+    }
+})) 
 
 export const ThemeButton = styled(Button, {
     shouldForwardProp: (props:PropertyKey) => props !== ("themeObj" || "state" || "variant")
@@ -74,7 +88,7 @@ export const ThemeButton = styled(Button, {
     color:((props.variant === "outlined") || (props.variant === "text"))?getUtilsTheme(props.themeObj,props.state).background:getUtilsTheme(props.themeObj,props.state).foreground,
     borderColor: (props.variant === "outlined")?getUtilsTheme(props.themeObj,props.state).background:undefined,
     '&:hover': {
-        backgroundColor: (props.variant === "contained")?getUtilsTheme(props.themeObj,props.state).background:undefined,
+        backgroundColor: getUtilsTheme(props.themeObj,props.state).background.substring(0,7) + ((props.variant === "contained")?'CD':'34'),
         borderColor: (props.variant === "outlined")?getUtilsTheme(props.themeObj,props.state).background:undefined,
     }
 }))
@@ -83,10 +97,15 @@ export const ThemeFab = styled(Fab,{
     shouldForwardProp: (props:PropertyKey) => props !== ("themeObj" || "state")
 })<{themeObj: ThemeObj,state: StateThemeUtils}>((props) => ({
     backgroundColor: getUtilsTheme(props.themeObj,props.state).background,
-    color: getUtilsTheme(props.themeObj,props.state).foreground
+    color: getUtilsTheme(props.themeObj,props.state).foreground,
+    '&:hover':{
+        backgroundColor: getUtilsTheme(props.themeObj,props.state).background.substring(0,7)+'25',
+        color: getUtilsTheme(props.themeObj,props.state).background,
+    }
 }))
 
 interface SearchFieldInterface {
+    ids?:string
     placeholder:string
     onChange: (text: ChangeEvent<HTMLInputElement>) => void
     onSearch: (event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void
@@ -97,10 +116,12 @@ interface SearchFieldInterface {
     buttonPropsClear?: IconButtonProps
     refTarget?: ((data: HTMLDivElement | null) => void) | RefObject<HTMLDivElement> | null
     value?: string
+    sx?:SxProps<Theme>
 }
 
-export const SearchField = ({value,refTarget,placeholder,onChange,onSearch,onClear,theme,buttonPropsDropDown,buttonPropsClear,isDropDownButton}:SearchFieldInterface) => (
+export const SearchField = ({ids,value,refTarget,placeholder,onChange,onSearch,onClear,theme,buttonPropsDropDown,buttonPropsClear,isDropDownButton,sx}:SearchFieldInterface) => (
     <ThemeTextField
+        id={ids}
         onChange={onChange}
         onKeyDown={(event) => {
             if (event.key === 'Enter') {
@@ -114,6 +135,7 @@ export const SearchField = ({value,refTarget,placeholder,onChange,onSearch,onCle
         placeholder={placeholder}
         ref={refTarget}
         value={value}
+        sx={sx}
         InputProps={{
             endAdornment: <InputAdornment position="end" sx={{color:"inherit"}}>
                     <Tooltip title={(isDropDownButton)?"select menu search":"search"}>
@@ -141,7 +163,7 @@ interface TextFieldWithChipInterface {
     text?: string
     onChange: (text:ChangeEvent<HTMLInputElement>) => void
     onDelete: (item:string) => void
-    onClick?: () => void
+    onClick?: (event?:MouseEvent<HTMLDivElement,globalThis.MouseEvent>) => void
     inputProps?: InputBaseProps
     mainSx?: SxProps<Theme>
     mainProps?: StackProps
@@ -161,7 +183,7 @@ export const TextFieldWithChip = ({theme,state,dataItem,text,onChange,onDelete,o
     } as SxProps<Theme>
     return(
         <Stack direction="row" sx={mainSxDefault} {...mainProps}>
-            {dataItem.map(item => <Chip label={item} onClick={() => {onDelete(item)}} onDelete={() => {onDelete(item)}} 
+            {dataItem.map((item,i) => <Chip key={"list-item-"+i} label={item} onClick={() => {onDelete(item)}} onDelete={() => {onDelete(item)}} 
                 sx={chipSxDefault}/>)}
             <InputBase
                 {...inputProps}
@@ -179,9 +201,10 @@ type TabPanelType = {
     value: number | string
     sx?: SxProps<Theme>
     children: JSX.Element | JSX.Element[]
+    props?: BoxProps
 }
-export const TabPanel = ({targetValue,value,sx,children}:TabPanelType) => {
-    return <Box sx={{...sx,display: (targetValue === value)? "inline-block":"none", height: "inherit"}} >
+export const TabPanel = ({targetValue,value,sx,props,children}:TabPanelType) => {
+    return <Box sx={{...sx,display: (targetValue === value)? "inline-block":"none", height: "inherit"}} {...props}>
         {children}
     </Box>
 }
@@ -201,16 +224,21 @@ export const SearchSuggestContainer = ({open,loading,refTarget,data,onClick,onCl
     return(
         <Menu
             open={open}
+            autoFocus={false}
+            disableAutoFocus
+            disableAutoFocusItem
             anchorEl={refTarget}
             sx={sx}
             PaperProps={{sx:sxPaper}}
+            onClick={(event) => {event.stopPropagation()}}
             onClose={onClose}
         >
             {(!loading)?
                 <div>
-                    {(data.length > 0)?data.map(item => (
+                    {(data.length > 0)?data.map((item,i) => (
                         <MenuItem
-                            onClick={() => {onClick(item)}}
+                            key={item.name+i}
+                            onClick={() => {onClick(item);onClose()}}
                         >
                             {item.name}
                         </MenuItem>

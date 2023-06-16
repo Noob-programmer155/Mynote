@@ -1,3 +1,5 @@
+import { IdAndName } from "../../model/model-side"
+
 export const enum ReduxRoute{
     HOME,
     SIGNIN,
@@ -14,7 +16,7 @@ export interface SearchType{
 
 export interface FilterType {
     categories?:string[]
-    subtypes?:string[]
+    subtypes?:IdAndName<string>[]
     severities?:string[]
     member?:string
     group?:string

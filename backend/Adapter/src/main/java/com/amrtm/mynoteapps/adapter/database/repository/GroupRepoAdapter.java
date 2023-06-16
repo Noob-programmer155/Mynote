@@ -1,6 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.GroupPersisConv;
+import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
 import com.amrtm.mynoteapps.entity.repository.user.GroupRepoImpl;
 import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
@@ -39,13 +40,13 @@ public class GroupRepoAdapter implements GroupRepoImpl<GroupNote, Pageable> {
     }
 
     @Override
-    public Flux<GroupNote> findByRejectState(UUID member, Pageable pageable) {
-        return groupRepo.findByRejectState(member, pageable).map(groupPersisConv::toSecond);
+    public Flux<GroupNotif> findByRejectState(UUID member, Pageable pageable) {
+        return groupRepo.findByRejectState(member, pageable);
     }
 
     @Override
-    public Flux<GroupNote> findByWaitingState(UUID member, Pageable pageable) {
-        return groupRepo.findByWaitingState(member, pageable).map(groupPersisConv::toSecond);
+    public Flux<GroupNotif> findByWaitingState(UUID member, Pageable pageable) {
+        return groupRepo.findByWaitingState(member, pageable);
     }
 
     @Override

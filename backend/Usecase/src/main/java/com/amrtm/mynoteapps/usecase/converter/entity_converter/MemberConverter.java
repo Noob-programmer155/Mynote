@@ -1,14 +1,11 @@
 package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
 import com.amrtm.mynoteapps.entity.other.Role;
+import com.amrtm.mynoteapps.entity.other.obj.MemberNotif;
 import com.amrtm.mynoteapps.entity.user.member.impl.Member;
 import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 import com.amrtm.mynoteapps.usecase.security.PasswordEncoder;
-import com.amrtm.mynoteapps.usecase.user.MemberService;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MemberConverter implements DataConverter<Member, MemberDTO> {
     private final PasswordEncoder passwordEncoder;
@@ -32,6 +29,15 @@ public class MemberConverter implements DataConverter<Member, MemberDTO> {
                 .username(data.getUsername())
                 .avatar(data.getAvatar())
                 .role(role)
+                .build();
+    }
+
+    public MemberDTO convertToNotification(MemberNotif data,boolean notification) {
+        return new MemberDTO.builder()
+                .id(data.getId())
+                .username(data.getUsername())
+                .avatar(data.getAvatar())
+                .notificationFrom(notification)
                 .build();
     }
 

@@ -9,36 +9,47 @@ import { Role } from "../../model/model-side"
 
 type GroupPreviewType = {
     profile: Group
-    otherUsers: Member[] 
+    otherUsers: Member[]
+    isRequest:boolean
     isUpdate:boolean
     isDisable:boolean
-    theme: ThemeObj
+    theme:ThemeObj
+    error:boolean
     paperProps?: PaperProps
     onClickUpdate:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     onClickCancelUpdate:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
-    data: {username:string,avatar?:string,
-        onUsernameChange:(username: ChangeEvent<HTMLInputElement>) => void,
-        onChangeAvatar: (file:ChangeEvent<HTMLInputElement>) => void
-    },
+    username:string
+    avatar?:string
+    onUsernameChange:(username: ChangeEvent<HTMLInputElement>) => void
+    onChangeAvatar:(file:ChangeEvent<HTMLInputElement>) => void
     dataGroupMemberAuth?: Member //use it for make decision if group member or not or you`re a member or not, if not send button request will appears
     roleGroupMemberAuth?: Role
-    onClickSend: (data:{group:string,member:string}) => void
+    onClickSend: (data:{group:string}) => void
     onClickDelete: (data:{group:string}) => void
 }
 
-export function GroupPreview({profile,otherUsers,isUpdate,isDisable,theme,paperProps,onClickCancelUpdate,onClickUpdate,onClickSend,onClickDelete,data,dataGroupMemberAuth,roleGroupMemberAuth}:GroupPreviewType) {
+export function GroupPreview({profile,otherUsers,isRequest,isUpdate,isDisable,theme,error,paperProps,onClickCancelUpdate,onClickUpdate,onClickSend,onClickDelete,
+        username,avatar,onUsernameChange,onChangeAvatar,dataGroupMemberAuth,roleGroupMemberAuth}:GroupPreviewType) {
     const mainSx = {
         width: "90vw",
-        backgroundColor: theme.background_color? theme.background_color.substring(0,7)+'24' : "rgba(255,255,255,.35)",
-        color: theme.foreground_color.substring(0,7)+'24',
-        maxWidth: "450px"
+        backgroundColor: theme.background_color? theme.background_color.substring(0,7)+'B9' : "rgba(255,255,255,.35)",
+        color: theme.foreground_color.substring(0,7)+'B9',
+        maxWidth: "450px",
+        ...paperProps?.sx
     } as SxProps<Theme>
     const Image = (username:string,variantText: "inherit" | "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline",
-        avatar?:string,avatarSx?: SxProps<Theme>) => {
-        if (avatar) {
-            return <Avatar alt={username} src={Router.Public.GROUP_AVATAR.set({name:avatar}).build()} sx={{padding: "2rem",...avatarSx}}/>
+        avatar?:string,updateAvatar?:string,keyI?:string,avatarSx?: SxProps<Theme>) => {
+        if (avatar || updateAvatar) {
+            return <Avatar key={keyI} alt={username} src={(updateAvatar)?updateAvatar:Router.Public.GROUP_AVATAR.set({name:avatar!}).build()} sx={{padding: "2rem",...avatarSx}}/>
         } else
-            return <Avatar sx={{padding: "2rem",...avatarSx}}><Typography variant={variantText}>{username.charAt(0)}</Typography></Avatar>
+            return <Avatar key={keyI} sx={{padding: "2rem",...avatarSx}}><Typography variant={variantText}>{username.charAt(0)}</Typography></Avatar>
+    }
+    const ImageOther = (username:string,variantText: "inherit" | "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline",
+        avatar?:string,updateAvatar?:string,keyI?:string,avatarSx?: SxProps<Theme>) => {
+        if (avatar || updateAvatar) {
+            return <Avatar key={keyI} alt={username} src={(updateAvatar)?updateAvatar:Router.Public.MEMBER_AVATAR.set({name:avatar!}).build()} sx={{padding: "2rem",...avatarSx}}/>
+        } else
+            return <Avatar key={keyI} sx={{padding: "2rem",...avatarSx}}><Typography variant={variantText}>{username.charAt(0)}</Typography></Avatar>
     }
     const isUpdateUser = () => {
         if (roleGroupMemberAuth && roleGroupMemberAuth === "MANAGER" && isUpdate)
@@ -47,26 +58,26 @@ export function GroupPreview({profile,otherUsers,isUpdate,isDisable,theme,paperP
             return null
     }
     const isMember = () => {
-        if (dataGroupMemberAuth) {
-            if (!otherUsers.includes(dataGroupMemberAuth)) {
+        if (dataGroupMemberAuth && !isRequest) {
+            if (otherUsers.filter(item => item.id === dataGroupMemberAuth.id).length <= 0) {
                 return <ThemeButton
-                        id="btn-send-member-preview"
-                        variant="contained"
-                        themeObj={theme}
-                        state={StateThemeUtils.INFO}
-                        onClick={() => {onClickSend({group:profile.id!,member:dataGroupMemberAuth.id!})}}
-                        sx={{textTransform:"none"}}
-                    >Join</ThemeButton>
+                            id="btn-send-member-preview"
+                            variant="contained"
+                            themeObj={theme}
+                            state={StateThemeUtils.INFO}
+                            onClick={() => {onClickSend({group:profile.id!})}}
+                            sx={{textTransform:"none"}}
+                        >Join</ThemeButton>
             } else return null
         }
     }
     return(
-        <Paper elevation={3} sx={mainSx} {...paperProps}>
+        <Paper elevation={3} {...paperProps} sx={mainSx}>
             <Stack direction="column" spacing={2} sx={{padding:"10px"}}>
                 <Box sx={{margin:"auto !important", paddingTop:"20px"}}>
                     <IconButton id="avatar-member-preview" disabled={!(roleGroupMemberAuth && roleGroupMemberAuth === "MANAGER")} component="label" sx={{padding:"0px"}}>
-                        <input hidden accept=".jpg,.png" type="file" onChange={data.onChangeAvatar}/>
-                        {Image(profile.username,"h4",profile.avatar)}
+                        <input hidden accept=".jpg,.png,.jpeg" type="file" onChange={onChangeAvatar}/>
+                        {Image(profile.username,"h4",profile.avatar,avatar)}
                     </IconButton>
                 </Box>
                 {(roleGroupMemberAuth && roleGroupMemberAuth === "MANAGER")?
@@ -75,11 +86,13 @@ export function GroupPreview({profile,otherUsers,isUpdate,isDisable,theme,paperP
                         <ThemeTextField 
                             id="username-member-preview"
                             variant="standard"
-                            placeholder="Username"
+                            placeholder="Group Name"
                             state={StateThemeUtils.DEFAULT} 
                             themeObj={theme}
-                            value={data.username}
-                            onChange={data.onUsernameChange}
+                            value={username}
+                            error={error}
+                            helperText={(error)?"group already exists":((isUpdate)?"special character not allowed, except '-'":"")}
+                            onChange={onUsernameChange}
                             InputProps= {{
                                 endAdornment: <InputAdornment position="end" sx={{color:"inherit"}}>
                                         <ModeEditOutlineOutlined sx={{color:"inherit"}}/>
@@ -95,14 +108,13 @@ export function GroupPreview({profile,otherUsers,isUpdate,isDisable,theme,paperP
                             {(otherUsers && otherUsers.length > 0)?
                                 <AvatarGroup total={otherUsers.length} sx={{marginLeft:"auto",'& .MuiAvatarGroup-avatar':{fontSize:".75rem"}}}>
                                     {
-                                        otherUsers.slice(0,otherUsers.length > 6?6:otherUsers.length).map(grp => Image(grp.username,"caption",grp.avatar,{padding:0}))
+                                        otherUsers.slice(0,otherUsers.length > 6?6:otherUsers.length).map((grp,i) => ImageOther(grp.username,"caption",grp.avatar,undefined,grp.username+i,{padding:0}))
                                     }
                                 </AvatarGroup>
                             : <Typography textAlign="center">no groups</Typography>}
                         </>
                     }
                 </Stack>
-                <Divider sx={{backgroundColor: theme.foreground_color}}/>
                 {isMember()}
                 {isUpdateUser()}
                 {(roleGroupMemberAuth && roleGroupMemberAuth === "MANAGER")?deleteGroup(isDisable,theme,onClickDelete,profile,roleGroupMemberAuth):null}
@@ -114,43 +126,56 @@ export function GroupPreview({profile,otherUsers,isUpdate,isDisable,theme,paperP
 type MemberPreview = {
     profile: Member
     otherUsers: Group[]
+    isRequest:boolean
     isProfile: boolean
     isUpdate?: boolean
     isDisable: boolean
     theme: ThemeObj
+    error: boolean
     paperProps?: PaperProps
     onClickUpdate?:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     onClickCancelUpdate?:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
-    data: {username:string,avatar?:string,oldPassword?:string,newPassword?:string,
-        onUsernameChange?:(username: ChangeEvent<HTMLInputElement>) => void,
-        onChangeAvatar?: (file:ChangeEvent<HTMLInputElement>) => void,
-        onPasswordOldChange?:(password: ChangeEvent<HTMLInputElement>) => void,
-        onPasswordNewChange?:(password: ChangeEvent<HTMLInputElement>) => void,
-        onClickPasswordUpdate?:(event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void,
-        onClickViewOtherUser:(groups:Group[]) => void
-    },
-    onTheme?: (event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void,
+    username:string
+    avatar?:string
+    oldPassword?:string
+    newPassword?:string
+    onUsernameChange?:(username: ChangeEvent<HTMLInputElement>) => void
+    onChangeAvatar?: (file:ChangeEvent<HTMLInputElement>) => void
+    onPasswordOldChange?:(password: ChangeEvent<HTMLInputElement>) => void
+    onPasswordNewChange?:(password: ChangeEvent<HTMLInputElement>) => void
+    onClickPasswordUpdate?:(event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void
+    onClickViewOtherUser:(groups:Group[]) => void
+    onTheme?: (event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void
     dataGroup?: Group //use it for make decision if group member or not or you`re a member or not, if not send button request will appears
-    onClickSend?: (data:{group:string}) => void
+    onClickSend?: (data:{member:string,group:string}) => void
     onClickDemoted?: (data:{member:string,group:string}) => void
     onClickPromoted?: (data:{member:string,group:string}) => void
     onClickDeleteMember?: (data:{member:string,group:string}) => void
 }
 
-export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,theme,paperProps,onClickCancelUpdate,onTheme,onClickUpdate,onClickSend,onClickDemoted,
-        onClickPromoted,onClickDeleteMember,data,dataGroup}:MemberPreview) {
+export function MemberPreview({profile,otherUsers,isRequest,isProfile,isDisable,isUpdate,theme,error,paperProps,onClickCancelUpdate,onTheme,onClickUpdate,onClickSend,onClickDemoted,
+        onClickPromoted,onClickDeleteMember,username,avatar,oldPassword,newPassword,onUsernameChange,onChangeAvatar,onPasswordOldChange,onPasswordNewChange,
+        onClickPasswordUpdate,onClickViewOtherUser,dataGroup}:MemberPreview) {
     const mainSx = {
         width: "90vw",
         backgroundColor: theme.background_color? theme.background_color.substring(0,7)+'24' : "rgba(255,255,255,.35)",
         color: theme.foreground_color.substring(0,7)+'24',
-        maxWidth: "450px"
+        maxWidth: "450px",
+        ...paperProps?.sx
     } as SxProps<Theme>
     const Image = (username:string,variantText: "inherit" | "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline",
-        avatar?:string,avatarSx?: SxProps<Theme>) => {
-        if (avatar) {
-            return <Avatar alt={username} src={Router.Public.MEMBER_AVATAR.set({name:avatar}).build()} sx={{padding: "2rem",...avatarSx}}/>
+        avatar?:string,avatarUpdate?:string,avatarSx?: SxProps<Theme>) => {
+        if (avatar || avatarUpdate) {
+            return <Avatar alt={username} src={(avatarUpdate)?avatarUpdate:Router.Public.MEMBER_AVATAR.set({name:avatar!}).build()} sx={{padding: "2rem",...avatarSx}}/>
         } else
             return <Avatar sx={{padding: "2rem",...avatarSx}}><Typography variant={variantText}>{username.charAt(0)}</Typography></Avatar>
+    }
+    const ImageOther = (username:string,variantText: "inherit" | "button" | "caption" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "subtitle1" | "subtitle2" | "body1" | "body2" | "overline",
+        avatar?:string,avatarUpdate?:string,key?:string,avatarSx?: SxProps<Theme>) => {
+        if (avatar || avatarUpdate) {
+            return <Avatar key={key} alt={username} src={(avatarUpdate)?avatarUpdate:Router.Public.GROUP_AVATAR.set({name:avatar!}).build()} sx={{padding: "2rem",...avatarSx}}/>
+        } else
+            return <Avatar key={key} sx={{padding: "2rem",...avatarSx}}><Typography variant={variantText}>{username.charAt(0)}</Typography></Avatar>
     }
     const isUpdateUser = () => {
         if (isUpdate && onClickUpdate && onClickCancelUpdate)
@@ -161,13 +186,13 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
     const isMember = () => {
         if (dataGroup && dataGroup.roleMember) {
             if (dataGroup.roleMember === ("MANAGER" || "ADMIN")) {
-                if(!otherUsers.includes(dataGroup) && onClickSend) {
+                if(!otherUsers.includes(dataGroup) && onClickSend && !isRequest) {
                     return <ThemeButton
                             id="btn-send-member-preview"
                             variant="contained"
                             themeObj={theme}
                             state={StateThemeUtils.INFO}
-                            onClick={() => {onClickSend({group:dataGroup.id!})}}
+                            onClick={() => {onClickSend({group:dataGroup.id!,member:profile.id!})}}
                             sx={{textTransform:"none"}}
                         >Connect</ThemeButton>
                 } else {
@@ -197,7 +222,7 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
         }
     }
     return(
-        <Paper elevation={3} sx={mainSx} {...paperProps}>
+        <Paper elevation={3} {...paperProps} sx={mainSx}>
             <Stack direction="column" spacing={2} sx={{padding:"10px"}}>
                 <Box sx={{marginLeft:"auto !important", paddingTop:"20px",display:(isProfile)?"block":"none"}}>
                     <ThemeButton
@@ -213,8 +238,8 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
                 </Box>
                 <Box sx={{margin:"auto !important", paddingTop:"20px"}}>
                     <IconButton id="avatar-member-preview" disabled={!isProfile} component="label" sx={{padding:"0px"}}>
-                        <input hidden accept=".jpg,.png" type="file" onChange={data.onChangeAvatar}/>
-                        {Image(profile.username,"h4",profile.avatar)}
+                        <input hidden accept=".jpg,.png,.jpeg" type="file" onChange={onChangeAvatar}/>
+                        {Image(profile.username,"h4",profile.avatar,avatar)}
                     </IconButton>
                 </Box>
                 {(isProfile)?
@@ -226,8 +251,10 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
                             placeholder="Username"
                             state={StateThemeUtils.DEFAULT} 
                             themeObj={theme}
-                            value={data.username}
-                            onChange={data.onUsernameChange}
+                            value={username}
+                            onChange={onUsernameChange}
+                            error={error}
+                            helperText={(error)?"username already exists":((isUpdate)?"special character not allowed, except '-'":"")}
                             InputProps= {{
                                 endAdornment: <InputAdornment position="end" sx={{color:"inherit"}}>
                                         <ModeEditOutlineOutlined sx={{color:"inherit"}}/>
@@ -236,8 +263,8 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
                         />
                     </>
                     :<Typography variant="h6" sx={{color: theme.foreground_color,textAlign:"center",fontWeight:700}}>{profile.username}</Typography>}
-                {(isProfile && data.onPasswordOldChange && data.onPasswordNewChange && data.onClickPasswordUpdate)?
-                    modifyPassword(isDisable,theme,data.onPasswordOldChange,data.onPasswordNewChange,data.onClickPasswordUpdate):null}
+                {(isProfile && onPasswordOldChange && onPasswordNewChange && onClickPasswordUpdate)?
+                    modifyPassword(isDisable,theme,onPasswordOldChange,onPasswordNewChange,onClickPasswordUpdate,oldPassword,newPassword):null}
                 <Divider sx={{backgroundColor: theme.foreground_color}}/>
                 <Stack direction="row">
                     {
@@ -248,21 +275,20 @@ export function MemberPreview({profile,otherUsers,isProfile,isDisable,isUpdate,t
                                 themeObj={theme}
                                 state={StateThemeUtils.INFO}
                                 sx={{textTransform:"none"}}
-                                onClick={() => {data.onClickViewOtherUser(otherUsers)}}
+                                onClick={() => {onClickViewOtherUser(otherUsers)}}
                             >
                                 View
                             </ThemeButton>:null}
                             {(otherUsers && otherUsers.length > 0)?
                                 <AvatarGroup total={otherUsers.length} sx={{marginLeft:"auto",'& .MuiAvatarGroup-avatar':{fontSize:".75rem"}}}>
                                     {
-                                        otherUsers.slice(0,otherUsers.length > 6?6:otherUsers.length).map(grp => Image(grp.username,"caption",grp.avatar,{padding:0}))
+                                        otherUsers.slice(0,otherUsers.length > 6?6:otherUsers.length).map((grp,i) => ImageOther(grp.username,"caption",grp.avatar,undefined,grp.username+i,{padding:0}))
                                     }
                                 </AvatarGroup>
                             : <Typography textAlign="center">no groups</Typography>}
                         </>
                     }
                 </Stack>
-                <Divider sx={{backgroundColor: theme.foreground_color}}/>
                 {isMember()}
                 {isUpdateUser()}
                 {(dataGroup && dataGroup.roleMember === "MANAGER" && onClickDeleteMember)?deleteMember(isDisable,theme,onClickDeleteMember,profile,dataGroup):null}
@@ -276,7 +302,9 @@ const modifyPassword = (
         theme:ThemeObj,
         onChangeOldPassword:(oldPassword: ChangeEvent<HTMLInputElement>) => void,
         onChangeNewPassword:(newPassword: ChangeEvent<HTMLInputElement>) => void,
-        onClickUpdate:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)) => (
+        onClickUpdate:((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void),
+        oldPassword?:string,
+        newPassword?:string) => (
     <Accordion sx={{backgroundColor:"rgba(255,255,255,.25)"}}>
         <AccordionSummary
             expandIcon={<ExpandMore/>}
@@ -292,6 +320,7 @@ const modifyPassword = (
                     id="old-password-member-preview"
                     variant="standard"
                     label="Old Password"
+                    value={oldPassword}
                     themeObj={theme}
                     type="password"
                     state={StateThemeUtils.DEFAULT}
@@ -301,6 +330,7 @@ const modifyPassword = (
                     id="new-password-member-preview"
                     variant="standard"
                     label="New Password"
+                    value={newPassword}
                     themeObj={theme}
                     type="password"
                     state={StateThemeUtils.DEFAULT}
@@ -351,7 +381,7 @@ const updateProfile = (isDisabled:boolean,theme:ThemeObj,onClickUpdate:((event?:
 const deleteGroup = (isDisabled:boolean,theme:ThemeObj,onClickDelete:((data:{group:string}) => void),profile:Group , role: Role) => (
     <Stack direction="row" spacing={2} sx={{justifyContent:"flex-end"}}>
         {
-            (role !== "MANAGER")?
+            (role === "MANAGER")?
                 <ThemeButton
                     id="btn-delete-member-group"
                     variant="contained"
@@ -370,7 +400,7 @@ const deleteGroup = (isDisabled:boolean,theme:ThemeObj,onClickDelete:((data:{gro
 const deleteMember = (isDisabled:boolean,theme:ThemeObj,onClickDeleteMember:((data:{group:string,member:string}) => void),profile: Member,dataGroup: Group) => (
     <Stack direction="row" spacing={2} sx={{justifyContent:"flex-end"}}>
         {
-            (profile.role !== "MANAGER")?
+            (profile.role === "MANAGER")?
                 <ThemeButton
                     id="btn-delete-member-group-member"
                     variant="contained"

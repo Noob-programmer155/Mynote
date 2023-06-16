@@ -19,6 +19,7 @@ import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.UUID;
@@ -84,9 +85,9 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item)
                         .filter(data -> data.getRole() == Role.ADMIN || data.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMapMany(item -> memberRepo.findByWaitingState(group,pageable)
-                        .map(memberConverter::convertTo)
+                        .map(member -> memberConverter.convertToNotification(member,member.getUserFrom().equals(group)))
                 );
     }
 
@@ -95,28 +96,31 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item)
                         .filter(data -> data.getRole() == Role.ADMIN || data.getRole() == Role.MANAGER))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMapMany(item -> memberRepo.findByRejectState(group,pageable)
-                        .map(memberConverter::convertTo)
+                        .map(member -> memberConverter.convertToNotification(member,member.getUserFrom().equals(group)))
                 );
     }
 
     public Flux<MemberDTO> getMemberGroup(UUID group) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
                 .flatMapMany(item -> memberRepo.findMemberGroup(group)
-                        .map(member -> memberConverter.convertToWithRole(member,item.getRole())));
+                        .flatMap(member -> Mono.just(member)
+                                .flatMap(mbr -> groupMemberRepoRelation.findByParentAndChild(group,mbr.getId()))
+                                .map(memberDt -> memberConverter.convertToWithRole(member,memberDt.getRole()))
+                                .defaultIfEmpty(memberConverter.convertToWithRole(member,Role.USER)))
+                        )
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")));
     }
 
     public Mono<Boolean> updateRole(UUID member, UUID group, Role role) {
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(roleObj -> roleObj.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group, member)
                         .switchIfEmpty(Mono.error(new IllegalStateException("member not found")))
                         .flatMap(data -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
@@ -134,15 +138,16 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
                         .parent(group)
                         .child(member)
                         .role(Role.MEMBER)
                         .isDeleted(0)
                         .isConfirmed(0)
+                        .userFrom(group)
                         .build()
                 ).hasElement());
     }
@@ -151,9 +156,9 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChildNonAuthorize(group, member))
                 .switchIfEmpty(Mono.error(new IllegalStateException("member does`nt sign in this group")))
                 .flatMap(item -> {
@@ -170,9 +175,9 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChildNonAuthorize(group, member))
                 .switchIfEmpty(Mono.error(new IllegalStateException("member does`nt sign in this group")))
                 .flatMap(item -> {
@@ -188,51 +193,65 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(role -> role.getRole() == Role.ADMIN || role.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupMemberRepoRelation.deleteByParentAndChildAuth(group,member));
     }
 
     public Mono<GroupNoteDTO> save(GroupNoteDTO data, byte[] avatar, String filename, boolean update, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         return authValidation.getValidation()
-                .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
-                .flatMap(item -> {
+                .flatMap(memberRepo::findByName).map(Member::getId)
+                .flatMap(ids -> {
                     if (avatar.length > 0)
-                        return groupFileStorage.storeFile(avatar, filename,"group", data.getAvatar(),condition,elseCondition).flatMap(file -> {
-                            data.setAvatar(file);
-                            if (update)
-                                return groupRepo.findById(data.getId())
-                                        .switchIfEmpty(Mono.error(new IllegalStateException("id not found")))
-                                        .flatMap(dto -> groupRepo.save(groupConverter.deconvert(data,dto)))
-                                        .map(groupConverter::convertTo);
-                            else
-                                return groupRepo.save(groupConverter.deconvert(data))
-                                    .flatMap(grp -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
-                                            .parent(grp.getId())
-                                            .child(item)
-                                            .role(Role.MANAGER)
-                                            .isDeleted(0)
-                                            .isConfirmed(1)
-                                            .build())
-                                            .then(Mono.just(groupConverter.convertTo(grp))));
-                        });
+                        return Mono.just(update)
+                                .filter(is -> is)
+                                .flatMap(is ->
+                                        groupMemberRepoRelation.findByParentAndChild(data.getId(),ids)
+                                        .filter(role -> role.getRole() == Role.MANAGER)
+                                        .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
+                                        .flatMap(is1 -> groupRepo.findById(data.getId()))
+                                        .flatMap(group ->
+                                                groupFileStorage.storeFile(avatar, filename,"group", (group.getAvatar() != null && !group.getAvatar().isBlank())?group.getAvatar():"",condition,elseCondition)
+                                                        .flatMap(file -> {data.setAvatar(file);return groupRepo.save(groupConverter.deconvert(data,group));}))
+                                ).switchIfEmpty(
+                                        groupFileStorage.storeFile(avatar, filename,"group", "",condition,elseCondition)
+                                                .flatMap(file -> {data.setAvatar(file);return groupRepo.save(groupConverter.deconvert(data));})
+                                                .flatMap(grp -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
+                                                        .parent(grp.getId())
+                                                        .child(ids)
+                                                        .role(Role.MANAGER)
+                                                        .isDeleted(0)
+                                                        .isConfirmed(1)
+                                                        .build()).then(Mono.just(grp))))
+                                .map(item -> {
+                                    GroupNoteDTO group = groupConverter.convertTo(item);
+                                    group.setRoleMember(Role.MANAGER);
+                                    group.setIsMember(true);
+                                    return group;
+                                });
                     else {
-                        if (update)
-                            return groupRepo.findById(data.getId())
-                                    .switchIfEmpty(Mono.error(new IllegalStateException("id not found")))
-                                    .flatMap(dto -> groupRepo.save(groupConverter.deconvert(data,dto)))
-                                    .map(groupConverter::convertTo);
-                        else
-                            return groupRepo.save(groupConverter.deconvert(data))
-                                    .flatMap(grp -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
-                                                    .parent(grp.getId())
-                                                    .child(item)
-                                                    .role(Role.MANAGER)
-                                                    .isDeleted(0)
-                                                    .isConfirmed(1)
-                                                    .build())
-                                            .then(Mono.just(groupConverter.convertTo(grp))));
+                        return Mono.just(update)
+                                .filter(is -> is)
+                                .flatMap(is -> groupMemberRepoRelation.findByParentAndChild(data.getId(),ids)
+                                        .filter(role -> role.getRole() == Role.MANAGER)
+                                        .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
+                                        .flatMap(is1 -> groupRepo.findById(data.getId()))
+                                        .flatMap(grp -> groupRepo.save(groupConverter.deconvert(data,grp))))
+                                .switchIfEmpty(groupRepo.save(groupConverter.deconvert(data))
+                                        .flatMap(grp -> groupMemberRepoRelation.save(new GroupMemberRel.builder()
+                                                .parent(grp.getId())
+                                                .child(ids)
+                                                .role(Role.MANAGER)
+                                                .isDeleted(0)
+                                                .isConfirmed(1)
+                                                .build()).then(Mono.just(grp))))
+                                .map(item -> {
+                                    GroupNoteDTO group = groupConverter.convertTo(item);
+                                    group.setRoleMember(Role.MANAGER);
+                                    group.setIsMember(true);
+                                    return group;
+                                });
                     }
                 });
     }
@@ -242,16 +261,16 @@ public class GroupService<Storage extends FileStorageImpl,PagingAndSorting> impl
         return authValidation.getValidation()
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(id,item))
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not member")))
                 .filter(role -> role.getRole() == Role.MANAGER)
-                .switchIfEmpty(Mono.error(new IllegalStateException("you`re not allowed")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("you`re not allowed")))
                 .flatMap(item -> groupRepo.findById(id)
                     .switchIfEmpty(Mono.error(new IllegalStateException("id not found")))
                     .flatMap(data -> {
                         if (data.getAvatar() != null)
                             return groupFileStorage.deleteFile(data.getAvatar())
                                     .filter(is -> is)
-                                    .switchIfEmpty(Mono.error(new IllegalStateException("cannot delete file image "+data.getAvatar())))
+                                    .switchIfEmpty(Mono.error(new FileNotFoundException("cannot delete file image "+data.getAvatar())))
                                     .flatMap(is -> noteCollabRepo.deleteByGroup(id))
                                     .then(groupRepo.deleteById(data.getId()));
                         else

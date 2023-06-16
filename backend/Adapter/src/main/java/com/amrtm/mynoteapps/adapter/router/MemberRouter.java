@@ -99,7 +99,7 @@ public class MemberRouter<PagingAndSorting> {
         return memberService.deleteById(member).then(Mono.just(new SingleData<>(true)));
     }
 
-    public Mono<SingleData<Boolean>> deleteGroup(UUID group) {
-        return memberService.removeGroupRejected(group).then(Mono.just(new SingleData<>(true)));
+    public Mono<SingleData<Boolean>> deleteGroup(UUID group,UUID member) {
+        return memberService.removeGroupRejected(group,member).then(Mono.just(new SingleData<>(true)));
     }
 }

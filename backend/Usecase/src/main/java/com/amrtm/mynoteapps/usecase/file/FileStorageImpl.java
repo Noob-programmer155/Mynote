@@ -31,8 +31,12 @@ public class FileStorageImpl implements FileStorage {
     }
 
     public Mono<String> storeFile(byte[] filePart, String filename, String prefix, String name, boolean condition, Function<Path,Mono<Void>> elseCondition) {
-        String title = (name != null)? name:prefix + UUID.nameUUIDFromBytes(filename.getBytes()) + ".jpg";
-        return validateAndStore(filePart,title,condition,elseCondition).then(Mono.just(title));
+        return Mono.just(name)
+                .filter(is -> is != null && !is.isBlank())
+                .flatMap(this::deleteFile)
+                .flatMap(is -> {if(is) return Mono.just(prefix + filename + ".jpg"); else throw new RuntimeException("cannot delete image");})
+                .switchIfEmpty(Mono.just(prefix + filename + ".jpg"))
+                .flatMap(title -> validateAndStore(filePart,title,condition,elseCondition).then(Mono.just(title)));
     }
 
     public Mono<Void> createImage(byte[] data,String filename) {
@@ -49,7 +53,7 @@ public class FileStorageImpl implements FileStorage {
             ImageIO.write(newBufferedImage,"jpg",new File(base.resolve(filename).toString()));
             return Mono.empty();
         } catch (IOException e) {
-            return Mono.error(new RuntimeException(e));
+            return Mono.error(new IllegalArgumentException("Image is not in proper condition, please change another images"));
         }
     }
 

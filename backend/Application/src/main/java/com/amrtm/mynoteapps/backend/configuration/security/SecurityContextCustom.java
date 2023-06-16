@@ -1,6 +1,8 @@
 package com.amrtm.mynoteapps.backend.configuration.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,12 +35,8 @@ public class SecurityContextCustom implements ServerSecurityContextRepository {
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .flatMap(this::getAuth)
-                .onErrorMap(error -> !(error instanceof ExpiredJwtException || error instanceof IllegalArgumentException),
-                        error -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,error.getMessage()))
                 .onErrorMap(error -> error instanceof IllegalArgumentException
-                        ,error -> new ResponseStatusException(HttpStatus.FORBIDDEN))
-                .onErrorMap(error -> error instanceof ExpiredJwtException
-                        ,error -> new ResponseStatusException(HttpStatus.EXPECTATION_FAILED));
+                        ,error -> new IllegalAccessException(error.getMessage()));
     }
 
     private Mono<SecurityContext> getAuth(String token) {

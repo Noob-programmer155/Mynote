@@ -14,5 +14,5 @@ import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
 interface EntityBindFunction {
     MemberDTO MEMBER_DTO_BINDING (Tuple2<Member, Theme> item);
     NoteCollabDTO NOTE_COLLAB_DTO_BINDING(Tuple3<NoteCollab, Subtype, Member> item);
-    NotePrivateDTO NOTE_PRIVATE_DTO_BINDING(Tuple2<NotePrivate, Member> item);
+    NotePrivateDTO NOTE_PRIVATE_DTO_BINDING(NotePrivate item);
 }
