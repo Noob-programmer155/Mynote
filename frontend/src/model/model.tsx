@@ -1,4 +1,4 @@
-import { Pair } from './model-side';
+import { Pair, Role } from './model-side';
 
 export interface Model {
     id?: string;
@@ -6,7 +6,7 @@ export interface Model {
 
 export interface Subtype extends Model {
     name: string;
-    color: string
+    color?: string
 }
 
 export interface Theme extends Model {
@@ -23,15 +23,17 @@ export interface Theme extends Model {
     default_foreground: string;
     background: string;
     foreground: string;
+    isMyTheme?: boolean;
     createdBy?: Pair<string,string>;
     createdDate?: string;
 }
 
 export interface Group extends Model {
     username:string;
-    password?:string;
     avatar?:string;
     isMember?:boolean;
+    roleMember?:Role;
+    notificationFrom?:boolean;
 }
 
 export interface Member extends Model {
@@ -39,6 +41,8 @@ export interface Member extends Model {
     password?:string;
     avatar?:string;
     theme?:Theme;
+    role?:Role;
+    notificationFrom?:boolean;
 }
 
 export interface NotePrivate extends Model {
@@ -51,7 +55,6 @@ export interface NotePrivate extends Model {
     createdDate?: string;
     lastModifiedBy?: Pair<string,string>;
     lastModifiedDate?: string;
-    member?: Member;
 }
 
 export interface NoteCollab extends Model {
@@ -66,3 +69,7 @@ export interface NoteCollab extends Model {
     lastModifiedDate?: string;
     member?: Member;
 }
+
+export function instanceofModel<T extends Model>(item: Model,property: string): item is T {
+    return property in item
+} 

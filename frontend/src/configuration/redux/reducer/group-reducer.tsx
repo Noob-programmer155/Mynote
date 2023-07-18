@@ -1,16 +1,24 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Group } from "../../../model/model"
+import { IdAndName } from "../../../model/model-side"
+
+
+interface GroupStateObj {
+    group?: Group,
+    isRequest?: boolean
+}
 
 interface GroupState {
     group?: Group
-    groupPreview?: Group
-    avatar?: File
+    groupPreview?: GroupStateObj
     openProfile: boolean
     groups: Group[]
+    groupGuess: IdAndName<string>[]
 }
 
 const initialState: GroupState = {
     groups: [],
+    groupGuess: [],
     openProfile: false
 }
 export const groupReducer = createSlice({
@@ -18,12 +26,12 @@ export const groupReducer = createSlice({
     initialState,
     reducers: {
         setGroup: (state, value: PayloadAction<Group>) => {state.group = value.payload},
-        setGroupPreview: (state, value: PayloadAction<Group>) => {state.groupPreview = value.payload},
-        setAvatar: (state, value: PayloadAction<File>) => {state.avatar = value.payload},
+        setGroupPreview: (state, value: PayloadAction<GroupStateObj | undefined>) => {state.groupPreview = value.payload},
         setOpenProfile: (state,value: PayloadAction<boolean>) => {state.openProfile = value.payload},
         setGroups: (state,value: PayloadAction<Group[]>) => {state.groups = value.payload},
+        setGroupGuess: (state,value: PayloadAction<IdAndName<string>[]>) => {state.groupGuess = value.payload}
     }
 })
 
-export const {setGroup,setGroupPreview,setAvatar,setOpenProfile,setGroups} = groupReducer.actions
+export const {setGroup,setGroupPreview,setOpenProfile,setGroups,setGroupGuess} = groupReducer.actions
 export default groupReducer.reducer

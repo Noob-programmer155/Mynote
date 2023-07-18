@@ -35,6 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### Resource ###
-src/main/resources/application-production.properties

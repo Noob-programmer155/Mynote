@@ -1,0 +1,18 @@
+plugins {
+    id 'org.springframework.boot' version '3.0.2' apply false
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+dependencies {
+    implementation 'org.springframework.data:spring-data-commons:3.0.3'
+    implementation 'org.springframework.data:spring-data-r2dbc:3.0.5'
+    implementation 'io.projectreactor:reactor-core:3.4.0'
+    implementation project(':Entities')
+    implementation project(':Usecase')
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

@@ -1,0 +1,19 @@
+//============================================== IMPORTANT ===================================================//
+
+*** In this section include documentation about undefined name of raw attribute in interface or class ***
+
+- PagingAndSorting = its raw attribute where PagingAndSorting custom or extended class/interface is performed to inject in query sql, implement it in framework layer
+- AuthValidation = must be implemented in framework layer, its using to verify user, and return object authentication if verified and if not verified you can add error or maybe not return if requested in public url, e.g :
+    "ReactiveSecurityContextHolder.getContext()
+       .map(SecurityContext::getAuthentication)
+       .filter(Authentication::isAuthenticated)
+       .map(UsernamePasswordAuthenticationToken.class::cast)"
+- PasswordEncoder = must be implemented in framework layer(if using library) or in use case(if using native token)
+
+//============================================= IMPORTANT =====================================================//
+*** In this section include documentation step to reproduce important object that must be implemented in project ***
+
+- pagingAndSorting() = for paging and sorting function, using library driver or not(using custom) /depends on library what want to use
+- SecurityTokenProvider = for created token authentication, nb:* using initKey() and validateDate for create key and validate token date
+- ErrorGlobal = error global object for store exceptions type error
+- Database = implement database with manual custom configuration or using extended class from library

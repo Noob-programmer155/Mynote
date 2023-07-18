@@ -1,50 +1,36 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.0.2'
-	id 'io.spring.dependency-management' version '1.1.0'
-	id 'org.graalvm.buildtools.native' version '0.9.18'
+//	id 'org.graalvm.buildtools.native' version '0.9.18'
 }
 
-group = 'com.amrtm.mynoteapps'
-version = '1.0'
-sourceCompatibility = '17'
+//jar {
+//	from {
+//		subprojects.collect { it.sourceSets.main.output }
+//	}
+//	archiveBaseName = 'my-note'
+//	archiveVersion = '1.0'
+//}
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
+//configurations {
+//	compileOnly {
+//		extendsFrom annotationProcessor
+//	}
+//}
+
+//repositories {
+//	mavenCentral()
+//}
+
+subprojects {
+	apply {
+		plugin('java')
 	}
-}
 
-repositories {
-	mavenCentral()
-}
+	group = 'com.amrtm.mynoteapps'
+	version = '1.0'
+	sourceCompatibility = '17'
 
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-//	implementation 'io.r2dbc:r2dbc-pool:1.0.0.RELEASE'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'io.micrometer:micrometer-registry-prometheus'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-	implementation 'io.springfox:springfox-boot-starter:3.0.0'
-	implementation 'org.liquibase:liquibase-core:4.19.0'
-//	implementation 'mysql:mysql-connector-java:8.0.32'//runtimeOnly
-	implementation 'io.r2dbc:r2dbc-postgresql:0.8.13.RELEASE'//runtimeOnly
-	implementation 'org.postgresql:postgresql:42.5.4'
-	implementation 'org.projectlombok:lombok'
-	implementation 'org.bouncycastle:bcprov-jdk18on:1.72'
-	testImplementation 'org.projectlombok:lombok:1.18.22'//compileOnly
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
+	repositories {
+		mavenCentral()
+	}
 }

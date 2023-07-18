@@ -1,30 +1,28 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { Theme as ThemeObj } from "../../../model/model"
+import { IdAndName } from "../../../model/model-side";
 
-const defaultTheme = {
-    name: "default",
-    background_color: "#ffffffff",
-    foreground_color: "#363535ff",
-    border_color: "#fcd403ff",
-    background: "#fa9405ff",
-    foreground: "#f0f0f0ff",
-    danger_background: "#ff1900ff",
-    danger_foreground: "#f0f0f0ff",
-    info_background: "#1dc257ff",
-    info_foreground: "#f0f0f0ff",
-    default_background: "#059df0ff",
-    default_foreground: "#f0f0f0ff"
-} as ThemeObj
+interface ThemeReducerInterface {
+    theme?: ThemeObj
+    themePreview?: ThemeObj
+    themes: ThemeObj[]
+    themeGuess: IdAndName<string>[]
+}
 
+const initialState:ThemeReducerInterface = {
+    themes: [],
+    themeGuess: []
+}
 export const themeReducer = createSlice({
     name: "themeReducer",
-    initialState: {
-        theme: defaultTheme
-    },
+    initialState,
     reducers: {
-        setTheme: (state, value: PayloadAction<ThemeObj>) => {state.theme = value.payload}
+        setTheme: (state, value: PayloadAction<ThemeObj>) => {state.theme = value.payload},
+        setThemePreview: (state, value: PayloadAction<ThemeObj>) => {state.themePreview = value.payload},
+        setThemes: (state, value: PayloadAction<ThemeObj[]>) => {state.themes = value.payload},
+        setSearchGuess: (state, value: PayloadAction<IdAndName<string>[]>) => {state.themeGuess = value.payload}
     }
 })
 
-export const {setTheme} = themeReducer.actions
+export const {setTheme,setThemePreview,setThemes,setSearchGuess} = themeReducer.actions
 export default themeReducer.reducer
