@@ -5,21 +5,9 @@ import { AxiosRequestConfig } from "axios";
 import { MultipartBody } from "../model/data/router-server/attachment";
 import { Login, Single } from "../model/model-side";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { Adapter, Connection } from "../usecase/adapter";
+import { Connection, PublicAdapterInterface } from "../usecase/adapter";
 
-interface PublicAdapterInterface extends Adapter {
-    validateUserName(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSubtype(param: any, callback: (data: Subtype[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSubtypeSearch(param: any, callback: (data: Subtype[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    // getGroupAvatar(param: any, callback: (data?: string) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    // getThemeImage(param: any, callback: (data?: string) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    // getMemberAvatar(param: any, callback: (data?: string) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    signIn(body: MultipartBody<Member>, callback: (data?: Single<string>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void):Promise<void>;
-    login(body: Login, callback: (data?: Single<string>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void):Promise<void>;
-    // refresh(callback: (data?: Single<string>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void):void;
-}
-
-export class PublicAdapter implements PublicAdapterInterface{    
+export class PublicAdapter implements PublicAdapterInterface {    
     constructor(data: AuthTokenHandlerImpl) {
         this.auth = data
         this.configurationAdapter = () => {

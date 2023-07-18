@@ -6,25 +6,7 @@ import { IdAndName, Single } from "../model/model-side";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { bearer_name } from "../usecase/resource";
-import { Adapter, Connection } from "../usecase/adapter";
-
-interface GroupAdapterInterface extends Adapter {
-    getSearch(param: any, callback: (data: IdAndName<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSearchData(param: any, callback: (data: Group[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    validate(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getAllMemberQueue(param: any, callback: (data: Member[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getAllRejectedRequestQueue(param: any, callback: (data: Member[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getAllMember(param: any, callback: (data: Member[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    sendRequestMember(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    sendRejectMember(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    sendConfirmMember(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    save(body:MultipartBody<Group> ,callback: (data?: Group) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    modify(body:MultipartBody<Group> ,callback: (data?: Group) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    promoteMember(param:any ,callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    demoteMember(param:any ,callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    delete(param:any ,callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    removeMember(param:any ,callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-}
+import { Connection, GroupAdapterInterface } from "../usecase/adapter";
 
 export class GroupAdapter implements GroupAdapterInterface {
     constructor(data: AuthTokenHandlerImpl) {

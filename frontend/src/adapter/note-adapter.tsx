@@ -5,25 +5,7 @@ import { FilterGroup, FilterMember, Single } from "../model/model-side";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { ConnectionAxios } from "./adapter";
 import { bearer_name } from "../usecase/resource";
-import { Adapter, Connection } from "../usecase/adapter";
-
-interface NoteAdapterInterface extends Adapter{
-    getSearch(param: any, callback: (data: NotePrivate[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSearchGroup(param: any, callback: (data: NoteCollab[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getCategoryMember(callback: (data: Single<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSubtypeGroup(param: any, callback: (data: NoteCollab[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSeveritiesMember(callback: (data: Single<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSeveritiesGroup(param: any, callback: (data: Single<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getFilter(body: FilterMember,callback: (data: NotePrivate[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getFilterGroup(body: FilterGroup,callback: (data: NoteCollab[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    saveNotePrivate(body: NotePrivate, callback: (data?: NotePrivate) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    saveNoteGroup(param: any, body: NoteCollab, callback: (data?: NoteCollab) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    modifyNotePrivate(body: NotePrivate, callback: (data?: NotePrivate) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    modifyNoteGroup(param: any, body: NoteCollab, callback: (data?: NoteCollab) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    deleteNotePrivate(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    deleteNoteGroup(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    deleteNotePrivateCategory(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-}
+import { Connection, NoteAdapterInterface } from "../usecase/adapter";
 
 export class NoteAdapter implements NoteAdapterInterface {
     constructor(data: AuthTokenHandlerImpl) {

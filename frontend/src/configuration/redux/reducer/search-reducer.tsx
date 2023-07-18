@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { FilterType, SearchType } from "../../../usecase/other/redux-item-route";
+import { FilterType, SearchType } from "../../../model/data/router-server/redux-item-route";
 
 interface SearchAndFilterReducerInterface {
     search: SearchType,

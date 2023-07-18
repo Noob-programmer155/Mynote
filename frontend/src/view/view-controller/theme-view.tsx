@@ -9,9 +9,9 @@ import { setMessage } from "../../configuration/redux/reducer/message-response-r
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { ThemeList } from "../container/theme-container";
-import { DateConverter, FileConverter } from "../../usecase/converter/attribute";
+import { DateConverter, FileConverter } from "../../adapter/converter/attribute";
 import { setThemeProfile, setThemesProfiles } from "../../configuration/redux/reducer/profile-reducer";
-import { ReduxRoute } from "../../usecase/other/redux-item-route";
+import { ReduxRoute } from "../../model/data/router-server/redux-item-route";
 import { ThemePreview } from "../container/theme-container";
 import { defaultTheme, limitFileTheme } from "../../usecase/resource";
 import { setGlobalThemeSearch, setMyThemeSearch } from "../../configuration/redux/reducer/search-reducer";

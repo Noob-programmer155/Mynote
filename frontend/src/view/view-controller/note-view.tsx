@@ -11,7 +11,7 @@ import { setMessage } from "../../configuration/redux/reducer/message-response-r
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { NoteList } from "../container/note-container";
 import { delimiter, emptyNotesId } from "../../usecase/resource"
-import { DateConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../../usecase/converter/attribute";
+import { DateConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../../adapter/converter/attribute";
 import { setNoteCollab, setNotePrivate, setNotePrivates, setSubtype, setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 import { SubtypeAdapter } from "../../adapter/subtype-adapter";
 import { PublicAdapter } from "../../adapter/public-adapter";

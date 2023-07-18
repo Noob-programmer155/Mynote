@@ -5,14 +5,7 @@ import { Single } from "../model/model-side";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { bearer_name } from "../usecase/resource";
-import { Adapter, Connection } from "../usecase/adapter";
-
-interface SubtypeAdapterInterface extends Adapter {
-    updateIndex(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    save(param: any,body: Subtype, callback: (data?: Subtype) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    modify(param: any,body: Subtype, callback: (data?: Subtype) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    removeGroup(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-}
+import { Connection, SubtypeAdapterInterface } from "../usecase/adapter";
 
 export class SubtypeAdapter implements SubtypeAdapterInterface {
     constructor(data: AuthTokenHandlerImpl) {

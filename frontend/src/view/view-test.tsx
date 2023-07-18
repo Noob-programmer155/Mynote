@@ -6,13 +6,13 @@ import { Login } from "./container/login";
 import { UserItemList, UserItemListReject, UserItemListRequest } from "./container/user-list";
 import { NoteList } from "./container/note-container";
 import { Group, Member, NoteCollab, Theme } from "../model/model";
-import { DateConverter } from "../usecase/converter/attribute";
+import { DateConverter } from "../adapter/converter/attribute";
 import { SketchPicker } from 'react-color'
 import { from } from "rxjs";
 import { ThemeList, ThemePreview } from "./container/theme-container";
 import { ThemeView } from "./view-controller/theme-view";
 import { MainAdapter } from "../adapter/adapter";
-import { ReduxRoute } from "../usecase/other/redux-item-route";
+import { ReduxRoute } from "../model/data/router-server/redux-item-route";
 import { setRoute } from "../configuration/redux/reducer/route-reducer";
 import { Pair } from "../model/model-side";
 

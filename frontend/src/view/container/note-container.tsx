@@ -1,7 +1,7 @@
 import { Button, Card, CardActions, CardContent, CardProps, Chip, Collapse, IconButton, InputAdornment, InputBase, Menu, Stack, SxProps, Theme, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
-import { DateConverter } from "../../usecase/converter/attribute";
+import { DateConverter } from "../../adapter/converter/attribute";
 import { Theme as ThemeObj,NoteCollab, NotePrivate } from "../../model/model";
 import { StateThemeUtils, TextFieldWithChip, ThemeButton, ThemeTextField } from "./global";
 import { Delete, OpenInNewRounded, Palette, TurnedInRounded } from "@mui/icons-material";

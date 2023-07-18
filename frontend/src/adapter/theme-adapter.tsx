@@ -6,21 +6,7 @@ import { IdAndName, Single } from "../model/model-side";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { bearer_name } from "../usecase/resource";
-import { Adapter, Connection } from "../usecase/adapter";
-
-interface ThemeAdapterInterface extends Adapter {
-    getSearch(param: any, callback: (data: IdAndName<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getSearchData(param: any, callback: (data: Theme[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getMemberSearch(param: any, callback: (data: IdAndName<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    getMemberSearchData(param: any, callback: (data: Theme[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    validate(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    activateTheme(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    save(body:MultipartBody<Theme> ,callback: (data?: Theme) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    addTo(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    modify(body:MultipartBody<Theme> ,callback: (data?: Theme) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    delete(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-    removeFrom(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
-}
+import { Connection, ThemeAdapterInterface } from "../usecase/adapter";
 
 export class ThemeAdapter implements ThemeAdapterInterface {
     constructor(data: AuthTokenHandlerImpl) {

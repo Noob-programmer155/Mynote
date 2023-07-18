@@ -13,7 +13,7 @@ import { setMember, setMemberGuess, setMembers } from "../../configuration/redux
 import { setMessage } from "../../configuration/redux/reducer/message-response-reducer";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { setGroupGuess, setGroups } from "../../configuration/redux/reducer/group-reducer";
-import { ReduxRoute } from "../../usecase/other/redux-item-route";
+import { ReduxRoute } from "../../model/data/router-server/redux-item-route";
 import { setNotePrivates, setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 
 interface HeaderViewInterface {

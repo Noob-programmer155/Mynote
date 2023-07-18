@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { bearer_name } from "../../usecase/resource";
 import { Single } from "../../model/model-side";
 import ValidateError from "../../model/error/ValidateError";
-import { ReduxRoute } from "../../usecase/other/redux-item-route";
+import { ReduxRoute } from "../../model/data/router-server/redux-item-route";
 import { AuthTokenHandler } from "../../usecase/auth_handler/auth-token";
 
 export class AuthTokenHandlerImpl extends AuthTokenHandler {
