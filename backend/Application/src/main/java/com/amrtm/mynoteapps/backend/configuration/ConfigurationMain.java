@@ -4,10 +4,12 @@ import com.amrtm.mynoteapps.adapter.database.repository.MemberRepoAdapter;
 import com.amrtm.mynoteapps.backend.configuration.security.AuthenticationManagerCustom;
 import com.amrtm.mynoteapps.backend.configuration.security.SecurityContextCustom;
 import com.amrtm.mynoteapps.backend.configuration.security.SecurityMain;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.ReactiveAuditorAware;
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 import org.springframework.http.codec.ServerCodecConfigurer;
@@ -22,7 +24,17 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Configuration
 @EnableR2dbcAuditing
@@ -51,8 +63,14 @@ public class ConfigurationMain {
     }
 
     // Security
+    Logger log = Logger.getGlobal();
     @Bean
-    SecurityWebFilterChain http(ServerHttpSecurity http) {
-        return SecurityMain.httpConfiguration(http,securityContextCustom,authenticationManager,List.of(origin.split(delimiter)));
+    SecurityWebFilterChain http(ServerHttpSecurity http) throws IOException {
+        URL url = new URL("http://checkip.amazonaws.com");
+        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+        ArrayList<String> originUrl = new ArrayList<>(Arrays.stream(origin.split(delimiter)).toList());
+        originUrl.add("http://"+in.readLine());
+        log.info(originUrl.get(2));
+        return SecurityMain.httpConfiguration(http,securityContextCustom,authenticationManager,originUrl);
     }
 }

@@ -1,8 +1,8 @@
-import { Button, Card, CardActions, CardContent, CardProps, Chip, Collapse, IconButton, InputAdornment, InputBase, Menu, Popover, Stack, SxProps, Theme, Typography } from "@mui/material";
+import { Button, Card, CardActions, CardContent, CardProps, Chip, Collapse, IconButton, InputAdornment, InputBase, Menu, Stack, SxProps, Theme, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { ChangeEvent, MouseEvent, useEffect, useRef, useState } from "react";
-import { DateConverter } from "../../adapter/converter/attribute";
-import { Theme as ThemeObj,NoteCollab, NotePrivate, Subtype } from "../../model/model";
+import { DateConverter } from "../../usecase/converter/attribute";
+import { Theme as ThemeObj,NoteCollab, NotePrivate } from "../../model/model";
 import { StateThemeUtils, TextFieldWithChip, ThemeButton, ThemeTextField } from "./global";
 import { Delete, OpenInNewRounded, Palette, TurnedInRounded } from "@mui/icons-material";
 import { SketchPicker } from "react-color";
@@ -16,36 +16,66 @@ interface NoteHeaderInterface {
     onTransfer?:(event:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>,data:NoteCollab|NotePrivate) => void
     onDelete?: () => void
     role:string
+    isContainer?:boolean
     noteInit: NoteCollab | NotePrivate
 }
-function NoteHeader({theme,noteUpdate,noteInit,role,onTransfer,onChangeTitle,onChangeCategory,onDelete}:NoteHeaderInterface) {
+function NoteHeader({theme,noteUpdate,noteInit,role,onTransfer,onChangeTitle,onChangeCategory,onDelete,isContainer}:NoteHeaderInterface) {
     return(
         <>
             {(noteUpdate)?
                 <Stack sx={{width:"100%"}}>
                     {('subtype' in noteUpdate)?
                         <Typography sx={{fontSize:".8rem"}}>{(noteUpdate as NoteCollab).subtype.name}</Typography>:
-                        <InputBase
-                            required
-                            onClick={(event) => {event.stopPropagation()}}
-                            sx={{color:"inherit"}}
-                            value={(noteUpdate as NotePrivate).category}
-                            placeholder="Category"
-                            onChange={onChangeCategory}
-                            inputProps={{style:{fontSize:".8rem"}}}
-                        />
+                        <>
+                            {(!isContainer)?
+                                <InputBase
+                                    required
+                                    onClick={(event) => {event.stopPropagation()}}
+                                    sx={{color:"inherit"}}
+                                    value={(noteUpdate as NotePrivate).category}
+                                    placeholder="Category"
+                                    onChange={onChangeCategory}
+                                    inputProps={{style:{fontSize:".8rem"}}}
+                                />:<ThemeTextField
+                                    required
+                                    themeObj={theme}
+                                    state={StateThemeUtils.DEFAULT}
+                                    variant="standard"
+                                    onClick={(event) => {event.stopPropagation()}}
+                                    sx={{color:"inherit"}}
+                                    value={(noteUpdate as NotePrivate).category}
+                                    placeholder="Category"
+                                    onChange={onChangeCategory}
+                                    inputProps={{style:{fontSize:".8rem"}}}
+                                />
+                            }
+                        </>
                     }
                     <Box onClick={(event) => {event.stopPropagation()}}>
-                        <InputBase
-                            required
-                            sx={{color:"inherit"}}
-                            value={noteUpdate.title}
-                            onChange={onChangeTitle}
-                            placeholder="Title"
-                            multiline
-                            minRows={1}
-                            inputProps={{style:{fontSize:"2rem",fontWeight:700,lineHeight:"2rem"}}}
-                        />
+                        {(!isContainer)?
+                            <InputBase
+                                required
+                                sx={{color:"inherit"}}
+                                value={noteUpdate.title}
+                                onChange={onChangeTitle}
+                                placeholder="Title"
+                                multiline
+                                minRows={1}
+                                inputProps={{style:{fontSize:"2rem",fontWeight:700,lineHeight:"2rem"}}}
+                            />:<ThemeTextField
+                                required
+                                themeObj={theme}
+                                state={StateThemeUtils.DEFAULT}
+                                variant="standard"
+                                sx={{color:"inherit"}}
+                                value={noteUpdate.title}
+                                onChange={onChangeTitle}
+                                placeholder="Title"
+                                multiline
+                                minRows={1}
+                                inputProps={{style:{fontSize:"2rem",fontWeight:700,lineHeight:"2rem"}}}
+                            />
+                        }
                     </Box>
                     <Stack direction={"row"}>
                         {(onDelete && (role === "ADMIN" || role === "MANAGER"))?
@@ -76,8 +106,9 @@ interface NoteBodyInterface {
     onChangeDescription?: (text: ChangeEvent<HTMLTextAreaElement|HTMLInputElement>) => void
     onChangeKeynotes?: (text: ChangeEvent<HTMLTextAreaElement|HTMLInputElement>) => void
     onDeleteKeynotes?: (keynote:string) => void
+    isContainer?:boolean
 }
-function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeynotes,onDeleteKeynotes}:NoteBodyInterface) {
+function NoteBody({theme,keynoteText,noteUpdate,isContainer,onChangeDescription,onChangeKeynotes,onDeleteKeynotes}:NoteBodyInterface) {
     const [stateKeynotes,setStateKeynotes] = useState(false)
     const chipSxDefault = {
         backgroundColor: theme.default_background,
@@ -89,15 +120,28 @@ function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeyn
             {(noteUpdate && onChangeDescription && onChangeKeynotes && onDeleteKeynotes)?
                 <Stack direction="column" spacing={1} onClick={(event) => {event.stopPropagation()}}>
                     <Box sx={{maxHeight:"50vh",overflowY:"auto"}}>
-                        <InputBase
-                            required
-                            value={noteUpdate.description}
-                            onChange={onChangeDescription}
-                            placeholder="Description"
-                            multiline 
-                            minRows={2}
-                            sx={{color:"inherit",width:"100%"}}
-                        />
+                        {(!isContainer)?
+                            <InputBase
+                                required
+                                value={noteUpdate.description}
+                                onChange={onChangeDescription}
+                                placeholder="Description"
+                                multiline 
+                                minRows={2}
+                                sx={{color:"inherit",width:"100%"}}
+                            />:<ThemeTextField
+                                required
+                                themeObj={theme}
+                                state={StateThemeUtils.DEFAULT}
+                                variant="standard"
+                                value={noteUpdate.description}
+                                onChange={onChangeDescription}
+                                placeholder="Description"
+                                multiline 
+                                minRows={2}
+                                sx={{color:"inherit",width:"100%"}}
+                            />
+                        }
                     </Box>
                     <Stack onClick={() => {setStateKeynotes(!stateKeynotes)}}>
                         <Typography>Keynotes:</Typography>
@@ -112,7 +156,7 @@ function NoteBody({theme,keynoteText,noteUpdate,onChangeDescription,onChangeKeyn
                                     onChange={onChangeKeynotes}
                                     onDelete={onDeleteKeynotes}
                                     mainSx={{width:"100%"}}
-                                    inputProps={{placeholder:"input keynotes",onClick:(event) => {event.stopPropagation()},required:true}}
+                                    inputProps={{placeholder:"input keynotes (using ',' to separate one and other keynotes)",sx:{width:"100%"},onClick:(event) => {event.stopPropagation()},required:true}}
                                 />:noteUpdate.keynotes? noteUpdate.keynotes.map((item,i) => <Chip key={"text-chip-"+i} label={item} sx={chipSxDefault}/>):null
                             }
                         </Stack>
@@ -197,7 +241,7 @@ export function NoteList({id,cardProps,theme,isContainer,noteInit,dateConverter,
     const refColorPickerSeverity = useRef(null)
     const mainSx = {
         width: '100%',
-        minWidth: '300px',
+        minWidth: '280px',
         maxWidth: '1200px',
         backgroundColor: theme.background,
         borderColor: theme.border_color,
@@ -225,6 +269,7 @@ export function NoteList({id,cardProps,theme,isContainer,noteInit,dateConverter,
                         noteInit={noteInit}
                         noteUpdate={noteUpdate}
                         onTransfer={onTransfer}
+                        isContainer={isContainer}
                         role={role}
                         onChangeCategory={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,category:text.currentTarget.value})}}
                         onChangeTitle={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,title:text.currentTarget.value})}}
@@ -276,6 +321,7 @@ export function NoteList({id,cardProps,theme,isContainer,noteInit,dateConverter,
                     <CardContent>
                         <NoteBody
                             theme={theme}
+                            isContainer={isContainer}
                             noteUpdate={noteUpdate}
                             keynoteText={keynoteText}
                             onChangeDescription={(text) => {if (noteUpdate) setNoteUpdate({...noteUpdate,description:text.currentTarget.value})}}

@@ -5,9 +5,9 @@ import com.amrtm.mynoteapps.entity.repository.bindfunction.EntityBindFunctionImp
 import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.fetchjoin.JoinFetchMemberInterface;
-import com.amrtm.mynoteapps.entity.theme.impl.Theme;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuples;
 

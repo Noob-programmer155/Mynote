@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.router;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivateDTO;
 import com.amrtm.mynoteapps.entity.other.obj.FilterNoteGroup;
 import com.amrtm.mynoteapps.entity.other.obj.FilterNoteMember;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
@@ -10,6 +10,7 @@ import com.amrtm.mynoteapps.usecase.note.NoteService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public class NoteRouter<PagingAndSorting> {
     }
 
     public Flux<NotePrivateDTO> searchByTitleInMember(String name, int page, int size) {
-        return noteService.findByTitleMember(name, pagingAndSorting.create(page,size, new Pair<>(pagingAndSorting.asc(),"category"),new Pair<>(pagingAndSorting.desc(),"lastModifiedDate")));
+        return noteService.findByTitleMember(name, pagingAndSorting.create(page,size, Arrays.asList(new Pair<>(pagingAndSorting.asc(),"category"),new Pair<>(pagingAndSorting.desc(),"lastModifiedDate"))));
     }
 
     public Flux<NoteCollabDTO> searchByTitleInGroup(UUID group, String name, int page, int size) {

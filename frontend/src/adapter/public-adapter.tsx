@@ -1,10 +1,11 @@
 import { Router } from "../model/data/router-server/router";
-import { Adapter, ConnectionAxios, Connection } from "./adapter";
+import { ConnectionAxios } from "./adapter";
 import { Member, Subtype } from "../model/model";
 import { AxiosRequestConfig } from "axios";
 import { MultipartBody } from "../model/data/router-server/attachment";
 import { Login, Single } from "../model/model-side";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
+import { Adapter, Connection } from "../usecase/adapter";
 
 interface PublicAdapterInterface extends Adapter {
     validateUserName(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;

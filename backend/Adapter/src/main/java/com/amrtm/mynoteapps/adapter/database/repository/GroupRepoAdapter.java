@@ -4,7 +4,7 @@ import com.amrtm.mynoteapps.adapter.converter.GroupPersisConv;
 import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
 import com.amrtm.mynoteapps.entity.repository.user.GroupRepoImpl;
-import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
+import com.amrtm.mynoteapps.entity.model.user.group.impl.GroupNote;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

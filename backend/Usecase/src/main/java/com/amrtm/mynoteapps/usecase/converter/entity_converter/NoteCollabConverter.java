@@ -1,10 +1,10 @@
 package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
-import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 
 

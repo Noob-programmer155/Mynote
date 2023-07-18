@@ -3,9 +3,10 @@ import { MultipartBody } from "../model/data/router-server/attachment";
 import { Router } from "../model/data/router-server/router";
 import { Theme } from "../model/model";
 import { IdAndName, Single } from "../model/model-side";
-import { Adapter, Connection, ConnectionAxios } from "./adapter";
+import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../model/data/resource/resource";
+import { bearer_name } from "../usecase/resource";
+import { Adapter, Connection } from "../usecase/adapter";
 
 interface ThemeAdapterInterface extends Adapter {
     getSearch(param: any, callback: (data: IdAndName<string>[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;

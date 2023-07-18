@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.usecase.note;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivateDTO;
 import com.amrtm.mynoteapps.entity.other.obj.Category;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

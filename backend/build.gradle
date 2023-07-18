@@ -1,11 +1,25 @@
 plugins {
 	id 'java'
-	id 'org.graalvm.buildtools.native' version '0.9.18'
+//	id 'org.graalvm.buildtools.native' version '0.9.18'
 }
 
-repositories {
-	mavenCentral()
-}
+//jar {
+//	from {
+//		subprojects.collect { it.sourceSets.main.output }
+//	}
+//	archiveBaseName = 'my-note'
+//	archiveVersion = '1.0'
+//}
+
+//configurations {
+//	compileOnly {
+//		extendsFrom annotationProcessor
+//	}
+//}
+
+//repositories {
+//	mavenCentral()
+//}
 
 subprojects {
 	apply {

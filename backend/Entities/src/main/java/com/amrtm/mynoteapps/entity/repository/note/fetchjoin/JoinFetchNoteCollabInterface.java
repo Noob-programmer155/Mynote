@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.note.fetchjoin;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
 import reactor.core.publisher.Flux;
 
 import java.util.List;

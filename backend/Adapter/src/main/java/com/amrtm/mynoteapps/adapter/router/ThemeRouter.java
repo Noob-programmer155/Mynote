@@ -1,9 +1,8 @@
 package com.amrtm.mynoteapps.adapter.router;
 
 import com.amrtm.mynoteapps.adapter.storage.ThemeStorageImpl;
-import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
+import com.amrtm.mynoteapps.entity.model.theme.impl.ThemeDTO;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.usecase.theme.ThemeService;
 import reactor.core.publisher.Flux;

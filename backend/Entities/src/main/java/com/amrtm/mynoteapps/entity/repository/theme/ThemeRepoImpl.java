@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.theme;
 
-import com.amrtm.mynoteapps.entity.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.model.theme.impl.Theme;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

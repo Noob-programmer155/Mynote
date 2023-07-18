@@ -3,8 +3,9 @@ import { Router } from "../model/data/router-server/router";
 import { NoteCollab, NotePrivate } from "../model/model";
 import { FilterGroup, FilterMember, Single } from "../model/model-side";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { Adapter, Connection, ConnectionAxios } from "./adapter";
-import { bearer_name } from "../model/data/resource/resource";
+import { ConnectionAxios } from "./adapter";
+import { bearer_name } from "../usecase/resource";
+import { Adapter, Connection } from "../usecase/adapter";
 
 interface NoteAdapterInterface extends Adapter{
     getSearch(param: any, callback: (data: NotePrivate[]) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;

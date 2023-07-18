@@ -18,8 +18,6 @@ interface LoginInterface {
 export function Login({open, onClose, onChangePassword, onChangeUsername, onClickLogin, disableLoginBtn, onClickSignin, theme, data}: LoginInterface): JSX.Element {
     const cardSx = {
         maxWidth: "400px",
-        maxHeight: "100%",
-        overflow: "auto",
         width: "90vw",
         backgroundColor: theme.background_color,
         color: theme.foreground_color,

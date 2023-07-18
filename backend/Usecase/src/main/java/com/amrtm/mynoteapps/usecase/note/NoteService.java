@@ -1,19 +1,23 @@
 package com.amrtm.mynoteapps.usecase.note;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivate;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivate;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivateDTO;
 import com.amrtm.mynoteapps.entity.other.Role;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
-import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupSubtypeRel;
+import com.amrtm.mynoteapps.entity.model.relation.SubtypeNoteRel;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import com.amrtm.mynoteapps.entity.repository.note.NotePrivateRepo;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
+import com.amrtm.mynoteapps.entity.repository.relation.GroupSubtypeRepoRelation;
+import com.amrtm.mynoteapps.entity.repository.relation.SubtypeNoteRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.entity.other.obj.Category;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.NoteCollabConverter;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.NotePrivateConverter;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
@@ -33,10 +37,13 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
     private final NotePrivateConverter notePrivateConverter;
     private final MemberRepoImpl<Member,PagingAndSorting> memberRepo;
     private final GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation;
+    private final GroupSubtypeRepoRelation<GroupSubtypeRel> groupSubtypeRepoRelation;
+    private final SubtypeNoteRepoRelation<SubtypeNoteRel> subtypeNoteRepoRelation;
 
     public NoteService(NotePrivateRepo<NotePrivate,PagingAndSorting> notePrivateRepo, NoteCollabRepo<NoteCollab,PagingAndSorting> noteCollabRepo,
                        JoinFetchNote<PagingAndSorting> joinFetchNote, AuthValidation authValidation, NoteCollabConverter noteCollabConverter, NotePrivateConverter notePrivateConverter,
-                       MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation) {
+                       MemberRepoImpl<Member,PagingAndSorting> memberRepo, GroupMemberRepoRelation<GroupMemberRel> groupMemberRepoRelation, GroupSubtypeRepoRelation<GroupSubtypeRel> groupSubtypeRepoRelation,
+                       SubtypeNoteRepoRelation<SubtypeNoteRel> subtypeNoteRepoRelation) {
         this.notePrivateRepo = notePrivateRepo;
         this.noteCollabRepo = noteCollabRepo;
         this.joinFetchNote = joinFetchNote;
@@ -45,6 +52,8 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
         this.notePrivateConverter = notePrivateConverter;
         this.memberRepo = memberRepo;
         this.groupMemberRepoRelation = groupMemberRepoRelation;
+        this.groupSubtypeRepoRelation = groupSubtypeRepoRelation;
+        this.subtypeNoteRepoRelation = subtypeNoteRepoRelation;
     }
 
     @Override
@@ -126,12 +135,30 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
                 .flatMap(item -> {
                     if (update)
-                        return noteCollabRepo.findById(data.getId()).flatMap(note ->
-                                noteCollabRepo.save(noteCollabConverter.deconvert(data, note)))
+                        return noteCollabRepo.findById(data.getId()).flatMap(note -> {
+                                    if(data.getSubtype() != null && !note.getSubtype().equals(data.getSubtype().getId()))
+                                        return groupSubtypeRepoRelation.findByParentAndChild(group,note.getSubtype())
+                                                    .flatMap(rel -> subtypeNoteRepoRelation.deleteByParentAndChild(rel.getId(),note.getId()))
+                                                    .then(
+                                                            groupSubtypeRepoRelation.findByParentAndChild(group,data.getSubtype().getId())
+                                                                    .flatMap(rel -> subtypeNoteRepoRelation.save(new SubtypeNoteRel.builder()
+                                                                            .parent(rel.getId())
+                                                                            .child(note.getId())
+                                                                            .build()))
+                                                    ).then(noteCollabRepo.save(noteCollabConverter.deconvert(data, note)));
+                                    else
+                                        return noteCollabRepo.save(noteCollabConverter.deconvert(data, note));
+                                })
                                 .map(noteCollabConverter::convertTo);
                     else {
                         if (data.getSubtype() != null) {
                             return noteCollabRepo.save(noteCollabConverter.deconvert(data))
+                                    .flatMap(noteCollab -> groupSubtypeRepoRelation.findByParentAndChild(group,data.getSubtype().getId())
+                                            .flatMap(rel -> subtypeNoteRepoRelation.save(new SubtypeNoteRel.builder()
+                                                    .parent(rel.getId())
+                                                    .child(noteCollab.getId())
+                                                    .build())).then(Mono.just(noteCollab))
+                                    )
                                     .map(noteCollabConverter::convertTo);
                         } else
                             return Mono.error(new IllegalStateException("subtype must not be null"));

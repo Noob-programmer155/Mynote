@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.login;
 
-import com.amrtm.mynoteapps.entity.login.Login;
+import com.amrtm.mynoteapps.entity.model.login.Login;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;

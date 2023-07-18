@@ -2,7 +2,7 @@ package com.amrtm.mynoteapps.entity.repository.user;
 
 import com.amrtm.mynoteapps.entity.other.obj.MemberNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

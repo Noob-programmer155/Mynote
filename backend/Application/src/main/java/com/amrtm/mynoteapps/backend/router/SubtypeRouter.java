@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.backend.router;
 
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.SubtypeDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;

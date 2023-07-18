@@ -4,13 +4,12 @@ import com.amrtm.mynoteapps.adapter.converter.MemberPersisConv;
 import com.amrtm.mynoteapps.entity.other.obj.MemberNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public class MemberRepoAdapter implements MemberRepoImpl<Member, Pageable> {
     private final com.amrtm.mynoteapps.adapter.database.persistence.repository.user.MemberRepoImpl memberRepo;
@@ -59,7 +58,6 @@ public class MemberRepoAdapter implements MemberRepoImpl<Member, Pageable> {
         return memberRepo.validateName(username);
     }
 
-    Logger log = Logger.getLogger(MemberRepoAdapter.class.getName());
     @Override
     public <S extends Member> Mono<S> save(S entity) {
         return (Mono<S>) memberRepo.save(memberPersisConv.toFirst(entity)).map(memberPersisConv::toSecond);

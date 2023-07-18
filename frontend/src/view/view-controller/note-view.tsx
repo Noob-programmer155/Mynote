@@ -6,12 +6,12 @@ import { Add, AddCircle, ArrowBackRounded, Delete, Edit, FilterAlt, InfoRounded,
 import { Group, Member, NoteCollab, NotePrivate, Subtype, Theme as ThemeObj } from "../../model/model";
 import { GroupAdapter } from "../../adapter/group-adapter";
 import React, { ChangeEvent, DragEvent, MouseEvent, MutableRefObject, UIEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { EMPTY, every, exhaustMap, filter, iif, interval, map, mergeMap, of, switchMap, tap } from "rxjs";
+import { EMPTY, Subject, debounceTime, distinctUntilChanged, every, exhaustMap, filter, fromEvent, iif, interval, map, mergeMap, of, switchMap, tap } from "rxjs";
 import { setMessage } from "../../configuration/redux/reducer/message-response-reducer";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { NoteList } from "../container/note-container";
-import { delimiter, emptyNotesId } from "../../model/data/resource/resource"
-import { DateConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../../adapter/converter/attribute";
+import { delimiter, emptyNotesId } from "../../usecase/resource"
+import { DateConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../../usecase/converter/attribute";
 import { setNoteCollab, setNotePrivate, setNotePrivates, setSubtype, setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 import { SubtypeAdapter } from "../../adapter/subtype-adapter";
 import { PublicAdapter } from "../../adapter/public-adapter";
@@ -23,7 +23,7 @@ import { setNoteCollabFilter, setNoteCollabSearch, setNotePrivateFilter, setNote
 import { instanceofModel } from "../../model/model";
 import { setGroupMemberProfiles, setGroupProfile } from "../../configuration/redux/reducer/profile-reducer";
 import { setGroup, setGroupPreview, setOpenProfile as groupOpenProfile } from "../../configuration/redux/reducer/group-reducer";
-import { ValidateAndSortArrayModel, ValidateLastModels, ValidateSaveVariable } from "../../adapter/other/validate";
+import { ValidateAndSortArrayModel, ValidateLastModels, ValidateSaveVariable } from "../../usecase/other/validate";
 import { setOpenNotificationGroup } from "../../configuration/redux/reducer/notification-reducer";
 
 interface NoteGroupViewInterface {
@@ -47,6 +47,8 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
     const [open,setOpen] = useState(false)
     const [openAdd,setOpenAdd] = useState(false)
     const [openMembers,setOpenMembers] = useState(false)
+    const [searchName,setSearchName] = useState("")
+    const [searchEv] = useState(() => new Subject<string>())
     const filterNote = useAppSelector(state => state.searchAndFilterReducer.noteCollabFilter)
     const searchNote = useAppSelector(state => state.searchAndFilterReducer.noteCollabSearch)
     const subtypeAdd = useAppSelector(state => state.noteReducer.subtype)
@@ -97,29 +99,41 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
     )
 
     useEffect(() => {
-        if (!profile || !groupProfile || (profile && !profile.id) || searchNote.name.length > 0) return;
+        if (!profile || !groupProfile || (profile && !profile.id) || searchName.length > 0) {
+            if (groupProfile && searchName.length > 0)
+                searchEv.next(searchName)
+            return;
+        }
         let sub = subtypeReq.subscribe()
         return () => sub.unsubscribe()
-    },[profile,searchNote,groupProfile])
+    },[profile,searchName,groupProfile])
 
-    const onSearch = (text?:string) => {
-        iif(() => groupProfile !== undefined,of(text).pipe(
+    useEffect(() => {
+        searchEv.pipe(
+            debounceTime(2000),
+            distinctUntilChanged(),
+            tap(() => {setIsSearch(true)}),
             tap(() => {setLoading(true)}),
-            mergeMap((name) => iif(() => name !== undefined,of(name),of(searchNote.name))),
-            tap((name) => {dispatch(setNoteCollabSearch({...searchNote,name:name!,page:0,endPage:false}))}),
+            tap(() => {dispatch(setNoteCollabSearch({...searchNote,page:0,endPage:false}))}),
             exhaustMap(async(name) => {
                 await adapterNote.getSearchGroup({name:name!,group:groupProfile!.id!,page:0,size:searchNote.size},
                     (notesObj) => {
                         if (notesObj.length < searchNote.size)
-                            dispatch(setNoteCollabSearch({...searchNote,name:name!,endPage:true}))
+                            dispatch(setNoteCollabSearch({...searchNote,endPage:true}))
                         setNotesDataSearch((notesObj.length > 0)?notesObj:[{id:emptyNotesId,title:"",severity:{first:"",second:""},description:"",subtype:{name:"name"}}])
                     },
                     (error) => {dispatch(setMessage({message:error,error:true}))},
                     (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
             }),
             tap(() => {setLoading(false)})
-        ),EMPTY).subscribe()
+        ).subscribe()
+    },[])
+
+    const onSearch = (text:string) => {
+        setSearchName(text)
+        searchEv.next(text)
     }
+
     const onFilter = useCallback(() => {
         iif(() => groupProfile !== undefined,of({}).pipe(
             tap(() => {setDisable(true);setLoading(true)}),
@@ -145,7 +159,7 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
                 mergeMap(() => 
                     iif(() => isSearch,of({}).pipe(
                         exhaustMap(async() => {
-                            await adapterNote.getSearchGroup({name:searchNote.name,group:groupProfile!.id!,page:searchNote.page,size:searchNote.size},
+                            await adapterNote.getSearchGroup({name:searchName,group:groupProfile!.id!,page:searchNote.page,size:searchNote.size},
                                 (notesObj) => {
                                     if (notesObj.length > 0) {
                                         if (notesObj.length < searchNote.size)
@@ -227,14 +241,14 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
     return(
         <>
             {(groupProfile)?
-                <Stack sx={{width:"100%",...sx}}>
+                <Stack sx={{width:"100%",maxWidth:"100%",...sx}}>
                     <HeaderContainerNote
                         ids="search-field-note-collab"
                         key="search-field-note-collab"
-                        search={searchNote.name}
-                        onSearch={() => {setIsSearch(true);onSearch()}}
-                        onChange={(text) => {setIsSearch(true);onSearch(text.currentTarget.value)}}
-                        onClear={() => {dispatch(setNoteCollabSearch({...searchNote,name:""}));setNotesDataSearch([])}}
+                        search={searchName}
+                        onSearch={() => {}}
+                        onChange={(text) => {onSearch(text.currentTarget.value)}}
+                        onClear={() => {setSearchName("");setNotesDataSearch([])}}
                         onClickFilter={() => {setIsSearch(false);setOpen(!open)}}
                         onClickInfo={() => {
                             dispatch(setGroupPreview({group:groupProfile!}))
@@ -258,7 +272,7 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
                         group={groupProfile}
                         triggerOpenSearch={notesDataSearch.length > 0}
                         onScrollSearchAndFilter={onScroll}
-                        onCloseSearchAndFilter={() => {dispatch(setNoteCollabSearch({...searchNote,name:""}));setNotesDataSearch([])}}
+                        onCloseSearchAndFilter={() => {setSearchName("");setNotesDataSearch([])}}
                         dataSearchAndFilter={notesDataSearch}
                         loadingSearchAndFilter={loading}
                     />
@@ -279,11 +293,11 @@ export function GroupNoteView({adapterGroup,adapterNote,adapterPublic,adapterSub
                     />
                     {(subtypeAdd)?
                         <Backdrop
-                            sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
+                            sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1,overflowY:"auto",maxHeight:"100vh"}}
                             open={openAdd}
                             onClick={() => {setOpenAdd(!openAdd)}}
                         >
-                            <Paper onClick={(e) => {e.stopPropagation()}} sx={{overflowY:"auto",maxHeight:"100%",backgroundColor:themeProfile.background_color.substring(0,7)+"BC",color:themeProfile.foreground_color}}>
+                            <Paper onClick={(e) => {e.stopPropagation()}} sx={{backgroundColor:themeProfile.background_color.substring(0,7)+"BC",color:themeProfile.foreground_color}}>
                                 <CardContent sx={{maxWidth:"100%"}}>
                                     <Stack spacing={2}>
                                         <ThemeTextField
@@ -348,7 +362,9 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
     const [loading,setLoading] = useState(false)
     const [disable,setDisable] = useState(false)
     const [isSearch,setIsSearch] = useState(false)
+    const [searchName,setSearchName] = useState("")
     const [open,setOpen] = useState(false)
+    const [searchEv] = useState(() => new Subject<string>())
     const filterNote = useAppSelector(state => state.searchAndFilterReducer.notePrivateFilter)
     const searchNote = useAppSelector(state => state.searchAndFilterReducer.notePrivateSearch)
     const profile = useAppSelector(state => state.profileReducer.profile)
@@ -385,16 +401,18 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
         ).subscribe()
     },[profile,notesDataSearch])
     
-    const onSearch = (text?:string) => {
-        of(text).pipe(
+    useEffect(() => {
+        searchEv.pipe(
+            debounceTime(2000),
+            distinctUntilChanged(),
+            tap(() => {setIsSearch(true)}),
+            tap(() => {dispatch(setNotePrivateSearch({...searchNote,page:0,endPage:false}))}),
             tap(() => {setLoading(true)}),
-            mergeMap((name) => iif(() => name !== undefined,of(name),of(searchNote.name))),
-            tap((name) => {dispatch(setNotePrivateSearch({...searchNote,name:name!,page:0,endPage:false}))}),
             switchMap(async(name) => {
                 await adapterNote.getSearch({name:name!,page:0,size:searchNote.size},
                     (notesObj) => {
                         if (notesObj.length < searchNote.size)
-                            dispatch(setNotePrivateSearch({...searchNote,name:name!,endPage:true}))
+                            dispatch(setNotePrivateSearch({...searchNote,endPage:true}))
                         setNotesDataSearch((notesObj.length > 0)?notesObj:[{id:emptyNotesId,title:"",severity:{first:"",second:""},description:""}])
                     },
                     (error) => {dispatch(setMessage({message:error,error:true}))},
@@ -402,7 +420,8 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
             }),
             tap(() => {setLoading(false)})
         ).subscribe()
-    }
+    },[])
+    
     const onFilter = useCallback(() => {
         of({}).pipe(
             tap(() => {setDisable(true);setLoading(true)}),
@@ -425,12 +444,12 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
     },[filterNote])
     const onScroll = (event: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
         if (!loading && event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight) {
-            iif(() => !searchNote.endPage,of({}).pipe(
-                tap(() => {dispatch(setNotePrivateSearch({...searchNote,page:searchNote.page+1}));setLoading(true)}),
-                mergeMap(() => 
+            iif(() => !searchNote.endPage,of(searchNote.page+1).pipe(
+                tap((page) => {dispatch(setNotePrivateSearch({...searchNote,page:page}));setLoading(true)}),
+                mergeMap((page) => 
                     iif(() => isSearch,of({}).pipe(
                         exhaustMap(async() => {
-                            await adapterNote.getSearch({name:searchNote.name,page:searchNote.page,size:searchNote.size},
+                            await adapterNote.getSearch({name:searchName,page:page,size:searchNote.size},
                                 (notesObj) => {
                                     if (notesObj.length > 0) {
                                         if (notesObj.length < searchNote.size)
@@ -443,7 +462,7 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
                         })
                     ),of({}).pipe(
                         exhaustMap(async() => {
-                            await adapterNote.getFilter({...filterNote,page:searchNote.page,size:searchNote.size},
+                            await adapterNote.getFilter({...filterNote,page:page,size:searchNote.size},
                                 (notesObj) => {
                                     if (notesObj.length > 0) {
                                         if (notesObj.length < searchNote.size)
@@ -464,14 +483,14 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
         setOpen(!open)
     }
     return(
-        <Stack id="private-note-container" sx={{width:"100%",...sx}}>
+        <Stack id="private-note-container" sx={{width:"100%",maxWidth:"100%",...sx}}>
             <HeaderContainerNote
                 ids="search-field-note-private"
                 key="search-field-note-private"
-                search={searchNote.name}
-                onSearch={() => {setIsSearch(true);onSearch()}}
-                onChange={(text) => {setIsSearch(true);onSearch(text.currentTarget.value)}}
-                onClear={() => {dispatch(setNotePrivateSearch({...searchNote,name:""}));setNotesDataSearch([])}}
+                search={searchName}
+                onSearch={() => {}}
+                onChange={async(text) => {setSearchName(text.currentTarget.value);searchEv.next(text.currentTarget.value)}}
+                onClear={() => {setSearchName("");setNotesDataSearch([])}}
                 onClickFilter={() => {setIsSearch(false);setOpen(!open)}}
             />
             <BodyContainer
@@ -483,7 +502,7 @@ export function PrivateNoteView({adapterNote,adapterPublic,adapterSubtype,dateCo
                 theme={themeProfile}
                 triggerOpenSearch={notesDataSearch.length > 0}
                 onScrollSearchAndFilter={onScroll}
-                onCloseSearchAndFilter={() => {dispatch(setNotePrivateSearch({...searchNote,name:""}));setNotesDataSearch([])}}
+                onCloseSearchAndFilter={() => {setSearchName("");setNotesDataSearch([])}}
                 dataSearchAndFilter={notesDataSearch}
                 loadingSearchAndFilter={loading}
             />
@@ -707,7 +726,7 @@ const BodyNoteCollabContainerSubtype = React.memo<BodyNoteCollabContainerSubtype
         },[])
         return(
             <>
-                {subtypes.slice(0,5*load).map((subtype,i) => (
+                {subtypes.slice(0,3*load).map((subtype,i) => (
                     <Box key={"subtype-"+i} sx={{padding:"10px",maxWidth:"100vw",minWidth:(breakPointsLarge)?"50vw":"97vw"}}>
                         <BodyNoteCollabContainer
                             cardSx={{width:"100%"}}
@@ -804,7 +823,8 @@ const BodyNoteCollabContainerSubtype = React.memo<BodyNoteCollabContainerSubtype
 function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,noteArrayCollabConverter,noteArrayPrivateConverter,triggerOpenSearch,members,group,theme,openMember,dataSearchAndFilter,loadingSearchAndFilter,onOpenMember,onScrollSearchAndFilter,onCloseSearchAndFilter}:BodyContainerInterface) {
     const breakpoint = useMediaQuery('min-width:1000px')
     const [loading,setLoading] = useState(false)
-    const [load, setLoad] = useState(1)
+    const [loadGroup, setLoadGroup] = useState(1)
+    const [loadPrivate, setLoadPrivate] = useState(1)
     const [disable,setDisable] = useState(false)
     const [refreshPrivateNote,setRefreshPrivateNote] = useState(false)
     const [isPrivate,setIsPrivate] = useState(false)
@@ -860,28 +880,31 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
     //     return () => data.unsubscribe()
     // },[isScrollTop])
 
-    const onScrollPrivate = useCallback((event: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
+    const onScrollPrivate = (event: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
         if (!loading && event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight) {
             if (notes.length > 0)
-                if (load < 500)
-                    setLoad(load+1)
+                if (loadPrivate < 1000)
+                    setLoadPrivate(loadPrivate+1)
         }
-    },[])
+    }
 
-    const onScrollCollab = useCallback((event: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
+    const onScrollCollab = (event: UIEvent<HTMLDivElement, globalThis.UIEvent>) => {
         if (members && group) {
             if (appearance === "potrait" && !loading && event.currentTarget.clientWidth + event.currentTarget.scrollLeft >= event.currentTarget.scrollWidth) {
                 if (subtypes.length > 0)
-                    if (load < 500)
-                        setLoad(load+1)
+                    if (loadGroup < 1000) {
+                        setLoadGroup(loadGroup+1)
+                    }
             }
             if (appearance === "landscape" && !loading && event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight) {
-                if (notes.length > 0)
-                    if (load < 500)
-                        setLoad(load+1)
+                if (subtypes.length > 0)
+                    if (loadGroup < 1000) {
+                        setLoadGroup(loadGroup+1)
+                    }
+
             }
         }
-    },[])
+    }
 
     const onSaveNote = (index?:number,note?: NotePrivate | NoteCollab) => {
         of({}).pipe(
@@ -968,7 +991,7 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
                             <FormControlLabel control={<ThemeSwitch themeObj={theme} checked={appearance === "landscape"} onChange={(event) => {setAppearance((event.currentTarget.checked)?"landscape":"potrait")}}/>} label="landscape"/>
                             <Typography variant="h5" sx={{color:"inherit",flexGrow:1}} textAlign={"right"}>{(group)? group.username:""}</Typography>
                         </Stack>
-                        <Box sx={{width:"100%",height:"100%",overflow:"unset",position:"relative"}}>
+                        <Box sx={{width:"100%",height:"100%",overflow:"unset"}}>
                             {/* {(appearance === "landscape")?
                                 <Box onMouseEnter={() => {
                                     if (refScrollPos.current[1]?.clientHeight !== refScrollPos.current[1]?.scrollHeight)
@@ -989,7 +1012,7 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
                             }     */}
                             {(subtypes.length > 0)?
                                 <Stack ref={(ref) => {refScrollPos.current[0] = ref}} sx={{maxWidth:"100%",height:"100%",width:"100%",
-                                    overflowY:(appearance === "landscape")?"auto":"unset",overflowX:(appearance === "landscape")?"unset":"auto",position:"absolute",left:0,top:0}} onScroll={onScrollCollab}>
+                                    overflowY:(appearance === "landscape")?"scroll":"unset",overflowX:(appearance === "landscape")?"unset":"scroll"}} onScroll={onScrollCollab}>
                                         <Stack direction={(appearance === "landscape")?"column":"row"} spacing={1}>
                                             <BodyNoteCollabContainerSubtype
                                                 adapterNote={adapterNote}
@@ -1001,7 +1024,7 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
                                                 dateConverter={dateConverter}
                                                 disable={disable}
                                                 subtypes={subtypes}
-                                                load={load}
+                                                load={loadGroup}
                                                 noteAddCollabTrigger={noteAddCollabTrigger}
                                                 onNoteAddCollabTrigger={handleNoteAddCollabTrigger}
                                                 onAddNote={handleOnAddNote}
@@ -1038,7 +1061,7 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
                             } */}
                         </Box>
                     </>:
-                    <Stack ref={(ref) => {refScrollPos.current[1] = ref}} spacing={2} sx={{width:"100%",maxHeight:"100%",overflow:"unset",height:"80vh",position:"relative"}}>
+                    <Stack ref={(ref) => {refScrollPos.current[1] = ref}} spacing={2} sx={{width:"100%",maxHeight:"100%",overflow:"unset",height:"80vh"}}>
                         {/* <Box onMouseEnter={() => {
                                 if (refScrollPos.current[1]?.clientHeight !== refScrollPos.current[1]?.scrollHeight)
                                     setIsScrollTop(true)
@@ -1047,13 +1070,14 @@ function BodyContainer({adapterNote,adapterSubtype,adapterPublic,dateConverter,n
                                     setIsScrollTop(false)
                             }}
                             sx={{position:"absolute",top:0,height:"100px",width:"100%"}}/> */}
-                        <Stack sx={{width:"100%",maxHeight:"100%",overflowY:"auto",height:"100vh",position:"absolute",top:0}}  onScroll={onScrollPrivate}>
+                        <Stack sx={{width:"100%",maxHeight:"100%",overflowY:"scroll",height:"100vh"}} onScroll={onScrollPrivate}>
                             <BodyNotePrivateContainer
                                 adapterNote={adapterNote}
                                 dateConverter={dateConverter}
                                 noteArrayPrivateConverter={noteArrayPrivateConverter}
                                 theme={theme}
                                 open={group === undefined}
+                                load={loadPrivate}
                                 loading={loading}
                                 onAddNote={() => {setIsPrivate(true);setNoteAdd({data:{description:"",title:"",category:"",severity:{first:"default",second:theme.foreground}}})}}
                                 onDeleteCategory={(categoryDt) => {dispatch(setMessage({message:"Are you sure to delete it ?",error:false,
@@ -1590,25 +1614,29 @@ interface BodyNoteCollabContainerInterface {
 const BodyNoteCollabContainerObj = React.memo<{group:Group,notes:NoteCollab[],idI:string,theme:ThemeObj,dateConverter:DateConverter,onTransfer:(event:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>,data:NoteCollab) => void
     ,onClickSave:(data:NoteCollab|NotePrivate) => void,onDelete:(data:NoteCollab) => void}>(({
             group,notes,idI,theme,dateConverter,onTransfer,onClickSave,onDelete
-        }) => (
-    <>
-        {notes.map((item,i) => (
-            <Box key={idI+i}>
-                <NoteList
-                    id={idI+i}
-                    theme={theme}
-                    noteInit={item}
-                    dateConverter={dateConverter}
-                    role={group.roleMember!}
-                    onTransfer={(e,data) => {onTransfer(e,data as NoteCollab)}}
-                    onClickSave={onClickSave}
-                    onDelete={() => {onDelete(item)}}
-                />
-            </Box>
-        ))
-        }
-    </>
-))
+        }) => {
+            const large = useMediaQuery('(min-width:900px)')
+            return (
+                <>
+                    {notes.map((item,i) => (
+                        <Box key={idI+i}>
+                            <NoteList
+                                id={idI+i}
+                                theme={theme}
+                                noteInit={item}
+                                dateConverter={dateConverter}
+                                role={group.roleMember!}
+                                onTransfer={(e,data) => {onTransfer(e,data as NoteCollab)}}
+                                onClickSave={onClickSave}
+                                onDelete={() => {onDelete(item)}}
+                                cardProps={{sx:{minWidth:(large)?"500px":"90vw"}}}
+                            />
+                        </Box>
+                    ))
+                    }
+                </>
+            )
+})
 function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPublic,dateConverter,subtype,noteRemove,noteAdd,noteTransfer,index,group,changeDirection,onDeleteSubtype,onRemoveNoteTrigger,onClickTrigger,onAddNote,onTransferNote,onTransferSubtype,onUpdateSubtypeCallback,theme}:BodyNoteCollabContainerInterface) {
     const [notes,setNotes] = useState<NoteCollab[]>([])
     const [subtypeUpdate,setSubtypeUpdate] = useState<Subtype>()
@@ -1616,12 +1644,15 @@ function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPubli
     const [loadingGuess,setLoadingGuess] = useState(false)
     const [disable,setDisable] = useState(false)
     const [swapIconSubtype,setSwapIconSubtype] = useState(false)
+    const [subtypeName,setSubtypeName] = useState("")
+    const [subtypeEv] = useState(() => new Subject<string>())
     const [openPallete,setOpenPallete] = useState<null | HTMLElement>(null)
     const refTextFieldSubtype = useRef<HTMLDivElement | null>(null)
     const profile = useAppSelector(state => state.profileReducer.profile)
     const dispatch = useAppDispatch()
     useEffect(() => {
         setSubtypeUpdate(subtype)
+        setSubtypeName(subtype.name)
     },[subtype])
     useEffect(() => {
         if(noteTransfer) {
@@ -1659,6 +1690,21 @@ function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPubli
             })
         ).subscribe()
     },[subtype,profile])
+    useEffect(() => {
+        subtypeEv.pipe(
+            debounceTime(400),
+            distinctUntilChanged(),
+            tap(() => {setLoadingGuess(true)}),
+            tap((guess) => {setSubtypeUpdate({...subtypeUpdate!,name:guess})}),
+            exhaustMap(async(guess) => {
+                await adapterPublic.getSubtypeSearch({name:guess,page:0,size:5},
+                    (subtypesDt) => {setSubtypeGuess(subtypesDt.map(item => {return {id:item.id!,name:item.name} as IdAndName<string>}))},
+                    (error) => {dispatch(setMessage({message:error,error:true}))},
+                    (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
+            }),
+            tap(() => {setLoadingGuess(false)})
+        ).subscribe()
+    },[])
     const onUpdateNote = (data:NoteCollab) => {
         of({}).pipe(
             tap(() => {setDisable(true)}),
@@ -1666,7 +1712,8 @@ function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPubli
                 if(data && data.id)
                     await adapterNote.modifyNoteGroup({group: group.id!},data,
                         (notesObj) => {if (notesObj) {
-                            setNotes([...notes.filter(item => item.id !== notesObj.id),notesObj])
+                            let dataNew = notes.filter(item => item.id !== notesObj.id)
+                            setNotes([...dataNew,notesObj])
                             dispatch(setMessage({message:"Update Note Success",error:false}))
                         }},
                         (error) => {dispatch(setMessage({message:error,error:true}))},
@@ -1694,18 +1741,9 @@ function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPubli
         ).subscribe()
     }
 
-    const onSearchGuessSubtype = (text: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        of(text).pipe(
-            tap(() => {setLoadingGuess(true)}),
-            map((event) => {setSubtypeUpdate({...subtypeUpdate!,name:event.currentTarget.value});return event.currentTarget.value}),
-            exhaustMap(async(guess) => {
-                await adapterPublic.getSubtypeSearch({name:guess,page:0,size:5},
-                    (subtypesDt) => {setSubtypeGuess(subtypesDt.map(item => {return {id:item.id!,name:item.name} as IdAndName<string>}))},
-                    (error) => {dispatch(setMessage({message:error,error:true}))},
-                    (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
-            }),
-            tap(() => {setLoadingGuess(false)})
-        ).subscribe()
+    const onSearchGuessSubtype = async (text: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setSubtypeName(text.target.value)
+        subtypeEv.next(text.target.value)
     }
 
     const onModifySubtype = () => {
@@ -1742,7 +1780,7 @@ function BodyNoteCollabContainer({cardSx,adapterNote,adapterSubtype,adapterPubli
                                 ref={refTextFieldSubtype}
                                 variant="standard"
                                 themeObj={theme}
-                                value={(subtypeUpdate)?subtypeUpdate.name:""}
+                                value={subtypeName}
                                 state={StateThemeUtils.INFO}
                                 onFocus={() => {if (!swapIconSubtype) setSwapIconSubtype(true)}}
                                 onBlur={() => {if (swapIconSubtype) setSwapIconSubtype(false)}}
@@ -1862,16 +1900,17 @@ interface BodyNotePrivateContainerInterface {
     onDeleteCategory: (category:string) => void
     onLoading: (loading:boolean) => void
     loading: boolean
+    load: number
     open: boolean
     theme: ThemeObj
     dateConverter: DateConverter
 }
-const BodyNotePrivateContainerObj = React.memo<{notes: {category: string,data: NotePrivate[]}[],theme:ThemeObj,dateConverter:DateConverter,onTransfer:(event:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>,data:NotePrivate) => void,
+const BodyNotePrivateContainerObj = React.memo<{notes: {category: string,data: NotePrivate[]}[],load:number,theme:ThemeObj,dateConverter:DateConverter,onTransfer:(event:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>,data:NotePrivate) => void,
         onClickPos:(event:MouseEvent<HTMLDivElement,globalThis.MouseEvent>,category:string) => void,onClickSave:(data:NoteCollab|NotePrivate) => void,
-        onDelete:(data:NotePrivate) => void}>(({notes,theme,dateConverter,onTransfer,onClickPos,onClickSave,onDelete}) => {
+        onDelete:(data:NotePrivate) => void}>(({notes,load,theme,dateConverter,onTransfer,onClickPos,onClickSave,onDelete}) => {
             return(
                 <>
-                    {notes.map((item,ind) => (
+                    {notes.slice(0,5*load).map((item,ind) => (
                         <Stack key={"container-label-"+ind} onClick={(event) => {onClickPos(event,item.category)}} sx={{color:theme.foreground_color,width:"100%"}}>
                             <Typography variant="h5">{item.category}</Typography>
                             <Divider sx={{backgroundColor:theme.foreground_color,marginBottom:"10px"}}/>
@@ -1897,7 +1936,7 @@ const BodyNotePrivateContainerObj = React.memo<{notes: {category: string,data: N
                 </>
             )
 })
-function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,dateConverter,onAddNote,onDeleteCategory,onLoading,open,loading,theme}:BodyNotePrivateContainerInterface) {
+function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,dateConverter,onAddNote,onDeleteCategory,onLoading,open,loading,load,theme}:BodyNotePrivateContainerInterface) {
     const [mousePosition,setMousePosition] = useState<{x:number,y:number}>()
     const [categoryMenuTrigger,setCategoryMenuTrigger] = useState("")
     const [categories,setCategories] = useState<string[]>([])
@@ -1914,7 +1953,8 @@ function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,d
                 if(data && data.id)
                     await adapterNote.modifyNotePrivate(data,
                         (notesObj) => {if (notesObj) {
-                            dispatch(setNotePrivates(noteArrayPrivateConverter.to([...noteArrayPrivateConverter.from(notes).filter(item => item.id !== notesObj.id),notesObj])))
+                            let dataNew = noteArrayPrivateConverter.from(notes).filter(item => item.id !== notesObj.id)
+                            dispatch(setNotePrivates(noteArrayPrivateConverter.to([...dataNew,notesObj])))
                             dispatch(setMessage({message:"Update Note Success",error:false}))
                         }},
                         (error) => {dispatch(setMessage({message:error,error:true}))},
@@ -1931,7 +1971,7 @@ function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,d
                         (res) => {
                             if (res) 
                                 if(res.data) {
-                                    dispatch(setNotePrivates(noteArrayPrivateConverter.to([...noteArrayPrivateConverter.from(notes).filter(item => item.id !== note.id)])))
+                                    dispatch(setNotePrivates(noteArrayPrivateConverter.to(noteArrayPrivateConverter.from(notes).filter(item => item.id !== note.id))))
                                     dispatch(setMessage({message:"Delete Note Success",error:false}))
                                 } else dispatch(setMessage({message:"Delete Note Failed",error:true}))},
                         (error) => {dispatch(setMessage({message:error,error:true}))},
@@ -1948,7 +1988,7 @@ function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,d
                 exhaustMap(async(note) => {
                     await adapterNote.modifyNotePrivate(note,
                         (notesObj) => {if (notesObj) {
-                            let dataNew = [...notes.map(item => item.data).flat().filter(item => item.id !== notesObj.id)]
+                            let dataNew = notes.map(item => item.data).flat().filter(item => item.id !== notesObj.id)
                             dispatch(setNotePrivates(noteArrayPrivateConverter.to([...dataNew,notesObj])))
                         }},
                         (error) => {dispatch(setMessage({message:error,error:true}))},
@@ -1983,6 +2023,7 @@ function BodyNotePrivateContainer({boxSx,adapterNote,noteArrayPrivateConverter,d
                 {(notes.length > 0)?
                     <BodyNotePrivateContainerObj
                         notes={notes}
+                        load={load}
                         theme={theme}
                         dateConverter={dateConverter}
                         onClickPos={handleClickPos}

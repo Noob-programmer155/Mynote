@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class PagingAndSortingImpl implements PagingAndSorting<Pageable> {
     @Override
@@ -25,9 +26,9 @@ public class PagingAndSortingImpl implements PagingAndSorting<Pageable> {
     }
 
     @Override
-    public Pageable create(int page, int size, Pair<Object, String>... columnSorted) {
+    public Pageable create(int page, int size, List<Pair<Object, String>> columnSorted) {
         return PageRequest.of(page,size,Sort.by(
-                Arrays.stream(columnSorted).map(item -> {
+                columnSorted.stream().map(item -> {
                     if (item.getFirst() == Sort.Direction.ASC) return Sort.Order.asc(item.getSecond());
                     else return Sort.Order.desc(item.getSecond());
                 }).toList()

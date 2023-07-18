@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.usecase.user;
 
-import com.amrtm.mynoteapps.entity.user.UserDTOInterface;
+import com.amrtm.mynoteapps.entity.model.user.UserDTOInterface;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

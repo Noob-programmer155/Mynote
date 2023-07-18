@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-//	implementation 'io.r2dbc:r2dbc-pool:1.0.0.RELEASE'
+	implementation 'io.r2dbc:r2dbc-pool:1.0.0.RELEASE'
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
@@ -34,5 +34,3 @@ dependencies {
 tasks.test {
 	useJUnitPlatform()
 }
-
-assemble.dependsOn(":Entities:build",":Usecase:build",":Adapter:build")

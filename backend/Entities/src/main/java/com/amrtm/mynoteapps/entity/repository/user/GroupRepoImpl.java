@@ -2,7 +2,7 @@ package com.amrtm.mynoteapps.entity.repository.user;
 
 import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.Name;
-import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
+import com.amrtm.mynoteapps.entity.model.user.group.impl.GroupNote;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

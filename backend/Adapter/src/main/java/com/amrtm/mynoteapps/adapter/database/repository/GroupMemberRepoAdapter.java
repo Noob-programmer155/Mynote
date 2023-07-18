@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.GroupMemberPersisConv;
-import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupMemberRel;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
 import reactor.core.publisher.Mono;
 

@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.note;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

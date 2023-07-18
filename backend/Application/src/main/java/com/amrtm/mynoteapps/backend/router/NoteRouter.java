@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.backend.router;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivateDTO;
 import com.amrtm.mynoteapps.entity.other.obj.FilterNoteGroup;
 import com.amrtm.mynoteapps.entity.other.obj.FilterNoteMember;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component

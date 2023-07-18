@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ReduxRoute } from "../redux-item-route";
+import { ReduxRoute } from "../../../usecase/other/redux-item-route";
 
 export const routeReducer = createSlice({
     name:"routeReducer",

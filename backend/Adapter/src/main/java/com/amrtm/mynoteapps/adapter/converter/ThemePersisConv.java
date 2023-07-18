@@ -2,9 +2,9 @@ package com.amrtm.mynoteapps.adapter.converter;
 
 import com.amrtm.mynoteapps.adapter.database.persistence.persistenceObj.theme.Theme;
 
-public class ThemePersisConv implements PersistenceConverter<Theme, com.amrtm.mynoteapps.entity.theme.impl.Theme>{
+public class ThemePersisConv implements PersistenceConverter<Theme, com.amrtm.mynoteapps.entity.model.theme.impl.Theme>{
     @Override
-    public Theme toFirst(com.amrtm.mynoteapps.entity.theme.impl.Theme from) {
+    public Theme toFirst(com.amrtm.mynoteapps.entity.model.theme.impl.Theme from) {
         return new Theme(
                 from.getId(),
                 from.getName(),
@@ -26,8 +26,8 @@ public class ThemePersisConv implements PersistenceConverter<Theme, com.amrtm.my
     }
 
     @Override
-    public com.amrtm.mynoteapps.entity.theme.impl.Theme toSecond(Theme from) {
-        return new com.amrtm.mynoteapps.entity.theme.impl.Theme(
+    public com.amrtm.mynoteapps.entity.model.theme.impl.Theme toSecond(Theme from) {
+        return new com.amrtm.mynoteapps.entity.model.theme.impl.Theme(
                 from.getId(),
                 from.getName(),
                 from.getBackground_color(),

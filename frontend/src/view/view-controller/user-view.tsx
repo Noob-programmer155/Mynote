@@ -12,20 +12,20 @@ import { setMessage } from "../../configuration/redux/reducer/message-response-r
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { setSearch } from "../../configuration/redux/reducer/search-reducer";
 import { SearchField, StateThemeUtils, ThemeButton, ThemeFab } from "../container/global";
-import { Add, Close, NoteAlt, Summarize, SummarizeRounded } from "@mui/icons-material";
+import { Add, AddCircle, Close, SummarizeRounded } from "@mui/icons-material";
 import { Group, Member, Theme as ThemeObj } from "../../model/model";
 import { MemberPreview, GroupPreview } from "../container/user-container";
 import { setGroupProfile, setGroupsProfiles, setOpenProfile } from "../../configuration/redux/reducer/profile-reducer";
-import { ReduxRoute } from "../../configuration/redux/redux-item-route";
-import { FileConverter, RoleSortConverter } from "../../adapter/converter/attribute";
+import { ReduxRoute } from "../../usecase/other/redux-item-route";
+import { FileConverter, RoleSortConverter } from "../../usecase/converter/attribute";
 import { Role } from "../../model/model-side";
-import { ValidateAndSortArrayModel, ValidateLastModels, validateName } from "../../adapter/other/validate";
+import { ValidateAndSortArrayModel, ValidateLastModels, validateName } from "../../usecase/other/validate";
 import { PublicAdapter } from "../../adapter/public-adapter";
+import { setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 
 type Search = {
     adapterMember: MemberAdapter
     adapterGroup: GroupAdapter
-    name: string
     page?: number
     size: number
     isMember: boolean
@@ -35,6 +35,7 @@ interface UserViewSearchInterface {
     adapterMember?: MemberAdapter
     adapterGroup?: GroupAdapter
     sx?: SxProps<Theme>
+    searchObj: string
     onRefreshSearch: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
     userSwitch: boolean
 }
@@ -55,7 +56,7 @@ const CheckMemberUserViewSearch = React.memo<{profile?:Member,oldMembers:Member[
                                 dispatch(setOpenProfile(true))
                                 dispatch(setMember({...profile!,avatar:undefined}))
                             } else {
-                                dispatch(setMemberPreview({member:item,isRequest:oldMembers.length <= 0 || oldMembers.map(item => item.id).includes(item.id)}))
+                                dispatch(setMemberPreview({member:item,isRequest:oldMembers.map(item => item.id).includes(item.id)}))
                                 dispatch(setMember({...item,avatar:undefined}))
                                 dispatch(memberOpenProfile(true))
                             }
@@ -70,7 +71,7 @@ const CheckMemberUserViewSearch = React.memo<{profile?:Member,oldMembers:Member[
                             image={(item.avatar)?Router.Public.GROUP_AVATAR.set({name:item.avatar}).build():""}
                             username={item.username}
                             onClick={() => {
-                                dispatch(setGroupPreview({group:item,isRequest:oldGroups.length <= 0 || oldGroups.map(item => item.id).includes(item.id)}))
+                                dispatch(setGroupPreview({group:item,isRequest:oldGroups.map(item => item.id).includes(item.id)}))
                                 dispatch(setGroup({...item,avatar:undefined}))
                                 dispatch(groupOpenProfile(true))
                             }}
@@ -81,7 +82,7 @@ const CheckMemberUserViewSearch = React.memo<{profile?:Member,oldMembers:Member[
         </>
     )
 })
-export function UserViewSearch({adapterGroup,adapterMember,onRefreshSearch,userSwitch,sx}:UserViewSearchInterface) {
+export function UserViewSearch({adapterGroup,adapterMember,searchObj,onRefreshSearch,userSwitch,sx}:UserViewSearchInterface) {
     const [loading,setLoading] = useState(false)
     const theme = useAppSelector(state => state.profileReducer.theme)
     const oldgroups = useAppSelector(state => state.profileReducer.groups)
@@ -92,30 +93,30 @@ export function UserViewSearch({adapterGroup,adapterMember,onRefreshSearch,userS
     const search = useAppSelector(state => state.searchAndFilterReducer.search)
     const dispatch = useAppDispatch()
 
-    const onScroll = (event:UIEvent<HTMLUListElement, globalThis.UIEvent>,{adapterGroup,adapterMember,name,size,isMember}:Search) => {
+    const onScroll = (event:UIEvent<HTMLUListElement, globalThis.UIEvent>,{adapterGroup,adapterMember,size,isMember}:Search) => {
         if(event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight && !loading) {
-            iif(() => !search.endPage,zip(of(name),of(search.page+1),of(size)).pipe(
+            iif(() => !search.endPage,zip(of(search.page+1),of(size)).pipe(
                 tap((item) => {dispatch(setSearch({...search,page:item[1]}));setLoading(true);return item}),
                 exhaustMap(async(item) => {
                     if (isMember) {
-                        await adapterMember.getSearchData({name:item[0],page:item[1],size:item[2]},(membersNew) => {
+                        await adapterMember.getSearchData({name:searchObj,page:item[0],size:item[1]},(membersNew) => {
                             if (membersNew.length > 0) {
-                                if (membersNew.length < item[2]) {
+                                if (membersNew.length < item[1]) {
                                     dispatch(setSearch({...search,endPage:true}))
                                 }
-                            } else dispatch(setSearch({...search,page:item[1]-1,endPage:true}))
+                            } else dispatch(setSearch({...search,page:item[0]-1,endPage:true}))
                             dispatch(setMembers([...members,...membersNew]))
                         },(error) => {
                             if (error)
                                 dispatch(setMessage({message:error,error:true}))   
                         }, (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
                     } else {
-                        await adapterGroup.getSearchData({name:item[0],page:item[1],size:item[2]},(groupsNew) => {
+                        await adapterGroup.getSearchData({name:searchObj,page:item[0],size:item[1]},(groupsNew) => {
                             if (groupsNew.length > 0) {
-                                if (groupsNew.length < item[2]) {
+                                if (groupsNew.length < item[1]) {
                                     dispatch(setSearch({...search,endPage:true}))
                                 }
-                            } else dispatch(setSearch({...search,page:item[1]-1,endPage:true}))
+                            } else dispatch(setSearch({...search,page:item[0]-1,endPage:true}))
                             dispatch(setGroups([...groups,...groupsNew]))
                         },(error) => {
                             if (error)
@@ -134,7 +135,7 @@ export function UserViewSearch({adapterGroup,adapterMember,onRefreshSearch,userS
 
     return(
         <Box sx={{backgroundColor:theme!.background_color? theme!.background_color.substring(0,theme!.background_color.length-2)+'20' : "rgba(255,255,255,.35)",color:theme!.foreground_color,
-            minWidth:"300px",maxHeight:"100%",overflowY:"auto",...sx}}>
+            maxHeight:"100%",overflowY:"auto",...sx}}>
             <ThemeButton
                 variant="outlined"
                 themeObj={theme!}
@@ -152,7 +153,7 @@ export function UserViewSearch({adapterGroup,adapterMember,onRefreshSearch,userS
             >
                 <Close color="inherit"/>
             </ThemeFab>
-            <List onScroll={(event) => {onScroll(event,{adapterMember:adapterMember!,adapterGroup:adapterGroup!,name:search.name,page:search.page,size:search.size,isMember:userSwitch})}} 
+            <List onScroll={(event) => {onScroll(event,{adapterMember:adapterMember!,adapterGroup:adapterGroup!,page:search.page,size:search.size,isMember:userSwitch})}} 
                 sx={{justifyContent:"center",maxHeight:"100%",overflowY:"auto"}}>
                 <CheckMemberUserViewSearch profile={profile} oldGroups={oldgroups} oldMembers={oldmembers} members={dataCheckObj.members} groups={dataCheckObj.groups} theme={dataCheckObj.theme}/>
                 {(loading)?
@@ -184,6 +185,7 @@ const CheckMemberProfileGroupView = React.memo<{groups:Group[],size:number,load:
                         image={(item.avatar)?Router.Public.GROUP_AVATAR.set({name:item.avatar}).build():""}
                         username={item.username}
                         onClick={() => {
+                            dispatch(setSubtypes([]))
                             dispatch(setGroupProfile(item))
                         }}
                         theme={theme}
@@ -238,14 +240,14 @@ export function ProfileGroupView({memberAdapter,onClickMyNote,onClickAddGroup,sx
     const onScroll = (event:UIEvent<HTMLUListElement, globalThis.UIEvent>) => {
         if(event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight) {
             if (groups.length > 0) 
-                if (load < 10)
+                if (load < 50)
                     setLoad(load+1)
         }
     }
 
     return(
         <Box sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'10' : "rgba(255,255,255,.15)",color:themeProfile.foreground_color,
-            minWidth:"300px",...sx}}>
+            ...sx}}>
             <Stack direction="row" spacing={1} sx={{width:"100%",marginBottom:"10px"}}>
                 <SearchField
                     sx={{width:"100%",margin:"0px 0 0 10px",marginRight:(large)?0:"10px"}}
@@ -257,8 +259,8 @@ export function ProfileGroupView({memberAdapter,onClickMyNote,onClickAddGroup,sx
                 />
                 {(large)?
                     <Tooltip title="Add New Group" sx={{margin:"10px 0 0"}}>
-                        <IconButton sx={{color: "inherit"}} onClick={onClickAddGroup}>
-                            <Add color="inherit"/>
+                        <IconButton sx={{color: themeProfile.default_background}} onClick={onClickAddGroup}>
+                            <AddCircle color="inherit"/>
                         </IconButton>
                     </Tooltip>:null
                 }
@@ -349,7 +351,7 @@ export function ProfileGroupMemberView({members,sx,boxProps}:ProfileGroupMemberV
     const profile = useAppSelector(state => state.profileReducer.profile)
     const onScroll = (event:UIEvent<HTMLUListElement, globalThis.UIEvent>) => {
         if(event.currentTarget.clientHeight + event.currentTarget.scrollTop >= event.currentTarget.scrollHeight) {
-            if (load < 10) {
+            if (load < 100) {
                 setLoad(load+1)
             }
         }

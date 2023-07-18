@@ -1,16 +1,16 @@
 package com.amrtm.mynoteapps.usecase.user;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.Role;
-import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupMemberRel;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.user.GroupRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.user.group.impl.GroupNote;
-import com.amrtm.mynoteapps.entity.user.group.impl.GroupNoteDTO;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.group.impl.GroupNote;
+import com.amrtm.mynoteapps.entity.model.user.group.impl.GroupNoteDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.GroupConverter;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.MemberConverter;
 import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;

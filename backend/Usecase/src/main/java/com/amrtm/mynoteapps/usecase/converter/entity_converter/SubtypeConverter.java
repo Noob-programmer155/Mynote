@@ -1,8 +1,8 @@
 package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
-import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.Subtype;
 import com.amrtm.mynoteapps.entity.other.bind.SubtypeColorBinding;
-import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.SubtypeDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 
 public class SubtypeConverter implements DataConverter<Subtype, SubtypeDTO> {

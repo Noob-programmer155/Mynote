@@ -1,6 +1,12 @@
 import { NotePrivate, Subtype, Model, NoteCollab } from "../../model";
 import { FilterGroup, FilterMember, Login, Password } from "../../model-side";
-import { server } from "../resource/resource";
+import { server as envServer } from "../../../usecase/resource";
+
+declare global {
+    interface Window { ip: any; }
+}
+
+const server = envServer || `http://${window.ip as string}/api/v1`
 
 export enum HttpRequest {
     POST,

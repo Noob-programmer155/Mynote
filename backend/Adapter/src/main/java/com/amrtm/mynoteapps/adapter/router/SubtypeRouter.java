@@ -1,8 +1,7 @@
 package com.amrtm.mynoteapps.adapter.router;
 
-import com.amrtm.mynoteapps.entity.other.pagingandsorting.PagingAndSorting;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.SubtypeDTO;
 import com.amrtm.mynoteapps.usecase.subtype.SubtypeService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

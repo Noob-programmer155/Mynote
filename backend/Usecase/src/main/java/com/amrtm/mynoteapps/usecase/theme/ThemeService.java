@@ -1,13 +1,12 @@
 package com.amrtm.mynoteapps.usecase.theme;
 
-import com.amrtm.mynoteapps.entity.other.utils.Pair;
 import com.amrtm.mynoteapps.entity.repository.relation.ThemeMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.theme.impl.Theme;
-import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
-import com.amrtm.mynoteapps.entity.relation.ThemeMemberRel;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.model.theme.impl.ThemeDTO;
+import com.amrtm.mynoteapps.entity.model.relation.ThemeMemberRel;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.ThemeConverter;
 import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;

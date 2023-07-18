@@ -1,11 +1,10 @@
 package com.amrtm.mynoteapps.backend.configuration.database;
 
 import com.amrtm.mynoteapps.adapter.database.Database;
-import com.amrtm.mynoteapps.entity.other.Role;
-import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
-import io.r2dbc.postgresql.PostgresqlConnectionFactory;
-import io.r2dbc.postgresql.codec.EnumCodec;
+import io.r2dbc.pool.PoolingConnectionFactoryProvider;
+import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,20 +28,23 @@ public class ConfigurationDBProd implements Database<ConnectionFactory> {
     private String username;
     @Value("${database.password}")
     private String password;
+    @Value("${database.max_pool}")
+    private int maxPool;
     @Value("${application.array.delimiter}")
     private String delimiter;
 
     @Bean
     public ConnectionFactory connectionFactory() {
-        PostgresqlConnectionConfiguration connectionFactory = PostgresqlConnectionConfiguration.builder()
-                .host(host)
-                .port(Integer.parseInt(port))
-                .username(username)
-                .password(password)
-                .database(db)
-                .codecRegistrar(EnumCodec.builder().withEnum("role", Role.class).build())
-                .build();
-        return new PostgresqlConnectionFactory(connectionFactory);
+        return ConnectionFactories.get(ConnectionFactoryOptions.builder()
+                .option(ConnectionFactoryOptions.DRIVER,"pool")
+                .option(ConnectionFactoryOptions.PROTOCOL,"postgresql") // driver identifier, PROTOCOL is delegated as DRIVER by the pool.
+                .option(ConnectionFactoryOptions.HOST,host)
+                .option(ConnectionFactoryOptions.PORT,Integer.parseInt(port))
+                .option(ConnectionFactoryOptions.USER,username)
+                .option(ConnectionFactoryOptions.PASSWORD,password)
+                .option(ConnectionFactoryOptions.DATABASE,db)
+                .option(PoolingConnectionFactoryProvider.MAX_SIZE,maxPool)
+                .build());
     }
 
     @Bean

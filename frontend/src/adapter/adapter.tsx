@@ -1,36 +1,14 @@
-import { HttpRequest, Router, RouterObject } from "../model/data/router-server/router";
+import { Router } from "../model/data/router-server/router";
 import axios, { AxiosResponse } from "axios";
-import { AuthTokenHandler, AuthTokenHandlerImpl } from "./auth_handler/auth-token";
+import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { PublicAdapter } from "./public-adapter";
 import { MemberAdapter } from "./member-adapter";
 import { GroupAdapter } from "./group-adapter";
 import { ThemeAdapter } from "./theme-adapter";
 import { SubtypeAdapter } from "./subtype-adapter";
 import { NoteAdapter } from "./note-adapter";
-import { bearer_name } from "../model/data/resource/resource";
-
-export abstract class Connection {
-    public auth: AuthTokenHandler
-    constructor(auth: AuthTokenHandler) {
-        this.auth = auth
-    }
-    async getConnection(router: RouterObject<{}>, config: {}, toLogin: (route:number) => void) {
-        switch (router.method) {
-            case HttpRequest.POST:
-                return this.post(router.build(),router.body,config,toLogin)
-            case HttpRequest.PUT:
-                return this.put(router.build(),router.body,config,toLogin)
-            case HttpRequest.DELETE:
-                return this.delete(router.build(),config,toLogin)
-            default:
-                return this.get(router.build(),config,toLogin)
-        }
-    }
-    protected abstract get(url: string, config: {},toLogin: (route:number) => void): Promise<any> 
-    protected abstract post(url: string, data: any, config: {}, toLogin: (route:number) => void): Promise<any>
-    protected abstract put(url: string, data: any, config: {}, toLogin: (route:number) => void): Promise<any>
-    protected abstract delete(url: string, config: {}, toLogin: (route:number) => void): Promise<any>
-}
+import { bearer_name } from "../usecase/resource";
+import { Connection } from "../usecase/adapter";
 
 export class ConnectionAxios extends Connection {
     protected async get(url: string, config: any, toLogin: (route:number) => void): Promise<AxiosResponse<any, any>> {
@@ -118,13 +96,6 @@ export class ConnectionAxios extends Connection {
             throw new Error("token is outdate, please login again");
         });
     }
-}
-
-export interface Adapter {
-    route: Router 
-    auth: AuthTokenHandlerImpl
-    configurationAdapter: () => any
-    createConnection(): Connection
 }
 
 export class MainAdapter {

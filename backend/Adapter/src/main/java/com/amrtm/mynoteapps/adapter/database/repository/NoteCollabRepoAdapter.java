@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.NoteCollabPersisConv;
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import org.springframework.data.domain.Pageable;

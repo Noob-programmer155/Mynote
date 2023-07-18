@@ -3,9 +3,10 @@ import {Router} from "../model/data/router-server/router"
 import { Group, Member } from "../model/model";
 import { IdAndName, Password, Single } from "../model/model-side";
 import { MultipartBody } from "../model/data/router-server/attachment";
-import { Adapter, ConnectionAxios } from "./adapter";
+import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../model/data/resource/resource";
+import { bearer_name } from "../usecase/resource";
+import { Adapter, Connection } from "../usecase/adapter";
 
 interface MemberAdapterInterface extends Adapter {
     getProfile(callback: (data?: Member) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;
@@ -45,7 +46,7 @@ export class MemberAdapter implements MemberAdapterInterface {
     auth: AuthTokenHandlerImpl;
     configurationAdapter: () => AxiosRequestConfig;
 
-    createConnection(): ConnectionAxios {
+    createConnection(): Connection {
         return new ConnectionAxios(this.auth);
     }
 

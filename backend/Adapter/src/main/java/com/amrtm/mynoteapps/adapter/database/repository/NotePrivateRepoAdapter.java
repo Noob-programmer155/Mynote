@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.NotePrivatePersisConv;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivate;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivate;
 import com.amrtm.mynoteapps.entity.other.obj.Category;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
 import com.amrtm.mynoteapps.entity.repository.note.NotePrivateRepo;
@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class NotePrivateRepoAdapter implements NotePrivateRepo<NotePrivate, Pageable> {
     private final com.amrtm.mynoteapps.adapter.database.persistence.repository.note.NotePrivateRepo notePrivateRepo;
@@ -29,6 +30,8 @@ public class NotePrivateRepoAdapter implements NotePrivateRepo<NotePrivate, Page
         return notePrivateRepo.deleteById(uuid);
     }
 
+
+    Logger log = Logger.getGlobal();
     @Override
     public Flux<NotePrivate> findByTitleLike(String name, UUID member, Pageable pageable) {
         return notePrivateRepo.findByTitleLike(name, member, pageable).map(notePrivatePersisConv::toSecond);

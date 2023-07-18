@@ -2,8 +2,8 @@ package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
 import com.amrtm.mynoteapps.entity.other.Role;
 import com.amrtm.mynoteapps.entity.other.obj.MemberNotif;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 import com.amrtm.mynoteapps.usecase.security.PasswordEncoder;
 

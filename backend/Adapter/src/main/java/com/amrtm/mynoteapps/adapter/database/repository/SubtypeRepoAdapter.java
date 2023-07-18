@@ -3,7 +3,7 @@ package com.amrtm.mynoteapps.adapter.database.repository;
 import com.amrtm.mynoteapps.adapter.converter.SubtypePersisConv;
 import com.amrtm.mynoteapps.entity.other.bind.SubtypeColorBinding;
 import com.amrtm.mynoteapps.entity.repository.subtype.SubtypeRepoImpl;
-import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.Subtype;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

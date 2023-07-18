@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.entity.repository.subtype;
 
 import com.amrtm.mynoteapps.entity.other.bind.SubtypeColorBinding;
-import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.Subtype;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

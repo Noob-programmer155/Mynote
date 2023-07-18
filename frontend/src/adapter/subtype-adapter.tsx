@@ -2,9 +2,10 @@ import { AxiosRequestConfig } from "axios";
 import { Router } from "../model/data/router-server/router";
 import { Subtype } from "../model/model";
 import { Single } from "../model/model-side";
-import { Adapter, Connection, ConnectionAxios } from "./adapter";
+import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../model/data/resource/resource";
+import { bearer_name } from "../usecase/resource";
+import { Adapter, Connection } from "../usecase/adapter";
 
 interface SubtypeAdapterInterface extends Adapter {
     updateIndex(param: any, callback: (data?: Single<boolean>) => void, error: (errorMsg?: string) => void, toLogin: (route:number) => void): Promise<void>;

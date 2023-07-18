@@ -1,8 +1,8 @@
 package com.amrtm.mynoteapps.usecase.converter.entity_converter;
 
 import com.amrtm.mynoteapps.entity.other.utils.Pair;
-import com.amrtm.mynoteapps.entity.theme.impl.Theme;
-import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
+import com.amrtm.mynoteapps.entity.model.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.model.theme.impl.ThemeDTO;
 import com.amrtm.mynoteapps.usecase.converter.DataConverter;
 
 

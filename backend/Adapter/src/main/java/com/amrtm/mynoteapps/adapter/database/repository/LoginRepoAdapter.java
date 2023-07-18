@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.LoginPersisConv;
-import com.amrtm.mynoteapps.entity.login.Login;
+import com.amrtm.mynoteapps.entity.model.login.Login;
 import com.amrtm.mynoteapps.entity.repository.login.LoginRepoImpl;
 import reactor.core.publisher.Mono;
 

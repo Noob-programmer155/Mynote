@@ -15,7 +15,7 @@ import { exhaustMap, of, tap } from "rxjs";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { Group, Member, Theme } from "../../model/model";
 import { setGroupsProfiles } from "../../configuration/redux/reducer/profile-reducer";
-import { ValidateAndSortArrayModel, ValidateLastModels } from "../../adapter/other/validate";
+import { ValidateAndSortArrayModel, ValidateLastModels } from "../../usecase/other/validate";
 
 type NotificationViewForMemberType = {
     adapter?: MemberAdapter
@@ -162,7 +162,7 @@ export function NotificationViewForMember({adapter}:NotificationViewForMemberTyp
                         } else if (groups.length > 0) {
                             let data = ValidateLastModels.validateGroup(notificationRequest,groups[0])
                             if (!data) dispatch(setRequestListGroup(groups))   
-                        }
+                        } else dispatch(setRequestListGroup([]))
                     },
                     (error) => {if (error) dispatch(setMessage({message:error,error:true}))},
                     (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
@@ -174,7 +174,7 @@ export function NotificationViewForMember({adapter}:NotificationViewForMemberTyp
                         } else if (groups.length > 0 && groups[0].notificationFrom) {
                             let data = ValidateLastModels.validateGroup(notificationReject,groups[0])
                             if (!data) dispatch(setRequestRejectedGroup(groups))
-                        }
+                        } else dispatch(setRequestRejectedGroup([]))
                     },
                     (error) => {if (error) dispatch(setMessage({message:error,error:true}))},
                     (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
@@ -374,7 +374,7 @@ export function NotificationViewForGroup({adapter,adapterMember}:NotificationVie
                         } else if (members.length > 0) {
                             let data = ValidateLastModels.validateMember(notificationRequest,members[0])
                             if (!data) dispatch(setRequestListMember(members))
-                        }
+                        } else dispatch(setRequestListMember([]))
                     },
                     (error) => {if (error) dispatch(setMessage({message:error,error:true}))},
                     (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
@@ -386,7 +386,7 @@ export function NotificationViewForGroup({adapter,adapterMember}:NotificationVie
                         } else if (members.length > 0 && members[0].notificationFrom) {
                             let data = ValidateLastModels.validateMember(notificationReject,members[0])
                             if (!data) dispatch(setRequestRejectedMember(members))
-                        }
+                        } else dispatch(setRequestRejectedMember([]))
                     },
                     (error) => {if (error) dispatch(setMessage({message:error,error:true}))},
                     (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})

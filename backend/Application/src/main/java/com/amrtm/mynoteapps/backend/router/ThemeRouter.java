@@ -3,7 +3,7 @@ package com.amrtm.mynoteapps.backend.router;
 import com.amrtm.mynoteapps.backend.configuration.converter.DataBufferMultipartToByteArray;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import com.amrtm.mynoteapps.entity.theme.impl.ThemeDTO;
+import com.amrtm.mynoteapps.entity.model.theme.impl.ThemeDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

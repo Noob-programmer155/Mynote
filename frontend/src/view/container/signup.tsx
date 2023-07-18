@@ -21,8 +21,6 @@ interface SignInMemberInterface {
 export function SignInMember({open, onClose, onChangePassword, onChangeUsername, onChangeAvatar, onClickSignIn, disableSignInBtn, errorValidateUsername, avatarPreview, theme, username, password}: SignInMemberInterface): JSX.Element {
     const cardSx = {
         maxWidth: "400px",
-        maxHeight: "100%",
-        overflow: "auto",
         width: "90vw",
         backgroundColor: theme.background_color,
         color: theme.foreground_color,
@@ -112,8 +110,6 @@ interface SignInGroupInterface {
 export function SignInGroup({open, onClose, onChangeUsername, onChangeAvatar, onClickCreate, disableSignInBtn, errorValidateUsername, avatarPreview, theme, username}: SignInGroupInterface): JSX.Element {
     const cardSx = {
         maxWidth: "400px",
-        maxHeight: "100%",
-        overflow: "auto",
         width: "90vw",
         backgroundColor: theme.background_color,
         color: theme.foreground_color,

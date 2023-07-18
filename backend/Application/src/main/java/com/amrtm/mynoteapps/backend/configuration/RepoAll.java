@@ -6,6 +6,7 @@ import com.amrtm.mynoteapps.backend.configuration.database.persistence.note.Note
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.note.NotePrivateRepo;
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.relation.GroupMemberRepoRelation;
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.relation.GroupSubtypeRepoRelation;
+import com.amrtm.mynoteapps.backend.configuration.database.persistence.relation.SubtypeNoteRepoRelation;
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.relation.ThemeMemberRepoRelation;
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.subtype.SubtypeRepoImpl;
 import com.amrtm.mynoteapps.backend.configuration.database.persistence.theme.ThemeRepoImpl;
@@ -22,18 +23,21 @@ public class RepoAll {
     private final GroupMemberRepoRelation groupMemberRepoRelation;
     private final GroupSubtypeRepoRelation groupSubtypeRepoRelation;
     private final ThemeMemberRepoRelation themeMemberRepoRelation;
+    private final SubtypeNoteRepoRelation subtypeNoteRepoRelation;
     private final SubtypeRepoImpl subtypeRepo;
     private final ThemeRepoImpl themeRepo;
     private final GroupRepoImpl groupRepo;
     private final MemberRepoImpl memberRepo;
 
-    public RepoAll(LoginRepoImpl loginRepo, NotePrivateRepo notePrivateRepo, NoteCollabRepo noteCollabRepo, GroupMemberRepoRelation groupMemberRepoRelation, GroupSubtypeRepoRelation groupSubtypeRepoRelation, ThemeMemberRepoRelation themeMemberRepoRelation, SubtypeRepoImpl subtypeRepo, ThemeRepoImpl themeRepo, GroupRepoImpl groupRepo, MemberRepoImpl memberRepo) {
+    public RepoAll(LoginRepoImpl loginRepo, NotePrivateRepo notePrivateRepo, NoteCollabRepo noteCollabRepo, GroupMemberRepoRelation groupMemberRepoRelation, GroupSubtypeRepoRelation groupSubtypeRepoRelation, ThemeMemberRepoRelation themeMemberRepoRelation,
+                   SubtypeNoteRepoRelation subtypeNoteRepoRelation ,SubtypeRepoImpl subtypeRepo, ThemeRepoImpl themeRepo, GroupRepoImpl groupRepo, MemberRepoImpl memberRepo) {
         this.loginRepo = loginRepo;
         this.notePrivateRepo = notePrivateRepo;
         this.noteCollabRepo = noteCollabRepo;
         this.groupMemberRepoRelation = groupMemberRepoRelation;
         this.groupSubtypeRepoRelation = groupSubtypeRepoRelation;
         this.themeMemberRepoRelation = themeMemberRepoRelation;
+        this.subtypeNoteRepoRelation = subtypeNoteRepoRelation;
         this.subtypeRepo = subtypeRepo;
         this.themeRepo = themeRepo;
         this.groupRepo = groupRepo;
@@ -72,6 +76,11 @@ public class RepoAll {
     @Bean
     public ThemeMemberRepoAdapter themeMemberRepoAdapter() {
         return new ThemeMemberRepoAdapter(themeMemberRepoRelation);
+    }
+
+    @Bean
+    public SubtypeNoteRepoAdapter subtypeNoteRepoAdapter() {
+        return new SubtypeNoteRepoAdapter(subtypeNoteRepoRelation);
     }
 
     @Bean

@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.note;
 
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivate;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivate;
 import com.amrtm.mynoteapps.entity.other.obj.Category;
 import com.amrtm.mynoteapps.entity.other.obj.Severity;
 import reactor.core.publisher.Flux;

@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.GroupSubtypePersisConv;
-import com.amrtm.mynoteapps.entity.relation.GroupSubtypeRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupSubtypeRel;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupSubtypeRepoRelation;
 import reactor.core.publisher.Mono;
 
@@ -12,6 +12,11 @@ public class GroupSubtypeRepoAdapter implements GroupSubtypeRepoRelation<GroupSu
     private final GroupSubtypePersisConv groupSubtypePersisConv = new GroupSubtypePersisConv();
     public GroupSubtypeRepoAdapter(com.amrtm.mynoteapps.adapter.database.persistence.repository.relation.GroupSubtypeRepoRelation groupSubtypeRepoRelation) {
         this.groupSubtypeRepoRelation = groupSubtypeRepoRelation;
+    }
+
+    @Override
+    public Mono<GroupSubtypeRel> findByParentAndChild(UUID parent, UUID child) {
+        return groupSubtypeRepoRelation.findByParentAndChild(parent, child).map(groupSubtypePersisConv::toSecond);
     }
 
     @Override

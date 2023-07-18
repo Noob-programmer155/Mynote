@@ -5,33 +5,32 @@ import { Router } from "../../model/data/router-server/router";
 import { setGroupProfile, setGroupsProfiles, setLogin, setLogout, setOpenProfile, setProfile } from "../../configuration/redux/reducer/profile-reducer";
 import { setOpenNotificationMember } from "../../configuration/redux/reducer/notification-reducer";
 import { SearchField, SearchSuggestContainer, StateThemeUtils, ThemeButton } from "../container/global";
-import React, { MouseEvent, useRef, useState } from "react";
-import { setSearch } from "../../configuration/redux/reducer/search-reducer";
+import React, { ChangeEventHandler, MouseEvent, useEffect, useRef, useState } from "react";
 import { MemberAdapter } from "../../adapter/member-adapter";
 import { GroupAdapter } from "../../adapter/group-adapter";
-import { exhaustMap, of, take, tap, zip } from "rxjs";
+import { Subject, debounceTime, distinctUntilChanged, exhaustMap, fromEvent, map, of, switchMap, take, tap, zip } from "rxjs";
 import { setMember, setMemberGuess, setMembers } from "../../configuration/redux/reducer/member-reducer";
 import { setMessage } from "../../configuration/redux/reducer/message-response-reducer";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { setGroupGuess, setGroups } from "../../configuration/redux/reducer/group-reducer";
-import { ReduxRoute } from "../../configuration/redux/redux-item-route";
+import { ReduxRoute } from "../../usecase/other/redux-item-route";
 import { setNotePrivates, setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 
 interface HeaderViewInterface {
     adapterMember?: MemberAdapter
     adapterGroup?: GroupAdapter
     sx?: SxProps<Theme>
-    onSearch: ((event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void)
+    onChangeSearch: (data:string) => void
+    onSearch: (event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void
     userSwitch: boolean
     onUserSwitch: (data:boolean) => void
 }
-export default function HeaderView({adapterMember,adapterGroup,onSearch,onUserSwitch,userSwitch,sx}:HeaderViewInterface) {
+export default function HeaderView({adapterMember,adapterGroup,onChangeSearch,onSearch,onUserSwitch,userSwitch,sx}:HeaderViewInterface) {
     const small = useMediaQuery("(min-width:600px)")
     const profile = useAppSelector(state => state.profileReducer.profile)
     const themeProfile = useAppSelector(state => state.profileReducer.theme)
     const notifCount1 = useAppSelector(state => state.notificationReducer.requestListGroup)
     const notifCount2 = useAppSelector(state => state.notificationReducer.requestRejectedGroup)
-    const search = useAppSelector(state => state.searchAndFilterReducer.search)
     const memberGuess = useAppSelector(state => state.memberReducer.memberGuess)
     const groupGuess = useAppSelector(state => state.groupReducer.groupGuess)
     const dispatch = useAppDispatch()
@@ -39,6 +38,8 @@ export default function HeaderView({adapterMember,adapterGroup,onSearch,onUserSw
     const [openMenu, setOpenMenu] = useState(false)
     const [openSearch, setOpenSearch] = useState(false)
     const [openMenuProfile,setOpenMenuProfile] = useState(false)
+    const [search,setSearch] = useState("")
+    const [searchEv] = useState(() => new Subject<{name:string,isMember:boolean}>())
     const menuRef = useRef<Array<HTMLButtonElement | HTMLDivElement | null>>([])
     const avatarSx = {
         padding: "5px"
@@ -51,32 +52,38 @@ export default function HeaderView({adapterMember,adapterGroup,onSearch,onUserSw
                 return <Avatar sx={avatarSx}><Typography variant="h6">{profile.username.charAt(0)}</Typography></Avatar>
         } else return null
     })
-    
-    const onSearchGuess = (adapterMember:MemberAdapter,adapterGroup:GroupAdapter,name:string,page:number,size:number,isMember:boolean) => {
-        zip(of(name),of(page!),of(size)).pipe(
-            tap(() => {dispatch(setSearch({...search,name:name}))}),
-            take(1),
-            tap(() => {setLoadingGuess(true)}),
-            exhaustMap(async(item) => {
-                if (isMember) {
-                    await adapterMember.getSearch({name:item[0],page:item[1],size:item[2]},(members) => {
-                        dispatch(setMemberGuess(members))
-                    },(error) => {
-                        if (error)
-                            dispatch(setMessage({message:error,error:true}))   
-                    }, (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
-                } else {
-                    await adapterGroup.getSearch({name:item[0],page:item[1],size:item[2]},(groups) => {
-                        dispatch(setGroupGuess(groups))
-                    },(error) => {
-                        if (error)
-                            dispatch(setMessage({message:error,error:true}))   
-                    }, (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
-                }
-            }),
-            tap(() => {setLoadingGuess(false)})
-        ).subscribe()
-    }
+
+    useEffect(() => {
+        onChangeSearch(search)
+        searchEv.next({name:search,isMember:userSwitch})
+    },[search])
+
+    useEffect(() => {
+        if (adapterGroup && adapterMember)
+            searchEv.pipe(
+                debounceTime(400),
+                distinctUntilChanged(),
+                tap(() => {setLoadingGuess(true)}),
+                switchMap(async(item) => {
+                    if (item.isMember) {
+                        await adapterMember.getSearch({name:item.name,page:0,size:5},(members) => {
+                            dispatch(setMemberGuess(members))
+                        },(error) => {
+                            if (error)
+                                dispatch(setMessage({message:error,error:true}))   
+                        }, (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
+                    } else {
+                        await adapterGroup!.getSearch({name:item.name,page:0,size:5},(groups) => {
+                            dispatch(setGroupGuess(groups))
+                        },(error) => {
+                            if (error)
+                                dispatch(setMessage({message:error,error:true}))   
+                        }, (route) => {dispatch(setRoute(route));dispatch(setMessage({message:"Session Expired",error:true}))})
+                    }
+                }),
+                tap(() => {setLoadingGuess(false)})
+            ).subscribe()
+    },[])
 
     const onLogout = () => {
         of({}).pipe(
@@ -102,6 +109,21 @@ export default function HeaderView({adapterMember,adapterGroup,onSearch,onUserSw
             tap(() => {dispatch(setLogout());dispatch(setLogin(false))})
         ).subscribe()
     }
+
+    const suggestion = (
+        <SearchSuggestContainer
+            key={"header-suggestion"}
+            open={memberGuess.length > 0 || groupGuess.length > 0}
+            data={(userSwitch)?memberGuess:groupGuess}
+            loading={loadingGuess}
+            refTarget={(menuRef.current[2])?menuRef.current[2]:undefined}
+            sx={{zIndex: (theme) => theme.zIndex.drawer + 7}}
+            sxPaper={{width:`${(menuRef.current[2]?.offsetWidth)?menuRef.current[2]?.offsetWidth:0}px`,backgroundColor:themeProfile.background_color,color:themeProfile.foreground_color,maxHeight:"50vh",overflowY:"auto"}}
+            colorLoading={themeProfile.foreground_color}
+            onClose={() => {if(memberGuess.length > 0) dispatch(setMemberGuess([])); else dispatch(setGroupGuess([]))}}
+            onClick={(data) => {onChangeSearch(data.name);setSearch(data.name)}}
+        />
+    )
 
     return(
         <AppBar position="static" sx={{backgroundColor: themeProfile.foreground_color,color: themeProfile.background_color,...sx}}>
@@ -129,24 +151,14 @@ export default function HeaderView({adapterMember,adapterGroup,onSearch,onUserSw
                                 ids={"header-search-user"}
                                 key={"header-search-user"}
                                 refTarget={(refer) => {menuRef.current[2] = refer}}
+                                value={search}
                                 theme={themeProfile}
-                                value={search.name}
+                                onChange={(ev) => {setSearch(ev.target.value)}}
                                 onSearch={() => {dispatch(setGroups([]));dispatch(setMembers([]));onSearch();setOpenMenu(false)}}
-                                onChange={(event) => {onSearchGuess(adapterMember!,adapterGroup!,event.currentTarget.value,0,5,userSwitch)}}
                                 placeholder={(userSwitch)?"Search member name":"Search group name"}
                                 isDropDownButton={false}
                             />
-                            <SearchSuggestContainer
-                                open={memberGuess.length > 0 || groupGuess.length > 0}
-                                data={(memberGuess.length > 0)?memberGuess:groupGuess}
-                                loading={loadingGuess}
-                                refTarget={menuRef.current[2]}
-                                sx={{zIndex: (theme) => theme.zIndex.drawer + 7}}
-                                sxPaper={{width:`${(menuRef.current[2]?.offsetWidth)?menuRef.current[2]?.offsetWidth:0}px`,backgroundColor:themeProfile.background_color,color:themeProfile.foreground_color,maxHeight:"50vh",overflowY:"auto"}}
-                                colorLoading={themeProfile.foreground_color}
-                                onClose={() => {if(memberGuess.length > 0) dispatch(setMemberGuess([])); else dispatch(setGroupGuess([]))}}
-                                onClick={(data) => {dispatch(setSearch({...search,name:data.name}))}}
-                            />
+                            {suggestion}
                         </Box>
                     </Menu>
                     <Menu

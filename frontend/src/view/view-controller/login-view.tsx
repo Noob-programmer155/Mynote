@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Login } from "../container/login";
 import { useAppDispatch, useAppSelector } from "../../configuration/redux/hooks";
-import { ReduxRoute } from "../../configuration/redux/redux-item-route";
+import { ReduxRoute } from "../../usecase/other/redux-item-route";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { exhaustMap, interval, of, tap } from "rxjs";
 import { PublicAdapter } from "../../adapter/public-adapter";

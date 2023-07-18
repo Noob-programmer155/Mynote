@@ -1,9 +1,7 @@
 plugins {
-    id 'org.springframework.boot' version '3.0.2'
+    id 'org.springframework.boot' version '3.0.2' apply false
     id 'io.spring.dependency-management' version '1.1.0'
 }
-
-assemble.dependsOn(":Entities:build","Usecase:build")
 
 dependencies {
     implementation 'org.springframework.data:spring-data-commons:3.0.3'

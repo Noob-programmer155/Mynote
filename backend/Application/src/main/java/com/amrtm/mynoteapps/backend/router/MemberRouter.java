@@ -2,13 +2,13 @@ package com.amrtm.mynoteapps.backend.router;
 
 import com.amrtm.mynoteapps.backend.configuration.converter.DataBufferMultipartToByteArray;
 import com.amrtm.mynoteapps.backend.configuration.security.impl.PasswordEncoderClass;
-import com.amrtm.mynoteapps.entity.login.LoginDTO;
-import com.amrtm.mynoteapps.entity.login.PasswordDTO;
+import com.amrtm.mynoteapps.entity.model.login.LoginDTO;
+import com.amrtm.mynoteapps.entity.model.login.PasswordDTO;
 import com.amrtm.mynoteapps.entity.other.obj.GroupNotif;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.entity.other.utils.SingleData;
-import com.amrtm.mynoteapps.entity.user.group.impl.GroupNoteDTO;
-import com.amrtm.mynoteapps.entity.user.member.impl.MemberDTO;
+import com.amrtm.mynoteapps.entity.model.user.group.impl.GroupNoteDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;

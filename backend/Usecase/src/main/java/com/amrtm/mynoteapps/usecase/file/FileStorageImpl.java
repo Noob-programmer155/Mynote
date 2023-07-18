@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FileStorageImpl implements FileStorage {
     private final Path base;
@@ -22,20 +24,45 @@ public class FileStorageImpl implements FileStorage {
         this.base = base;
     }
 
+    private Mono<Boolean> validateNameImage(String name) {
+        Pattern pattern = Pattern.compile("[\\.]{2}|/",Pattern.CASE_INSENSITIVE);
+        return Mono.just(pattern.matcher(name).find());
+    }
+
     public Mono<byte[]> retrieveFile(String name) {
-        try(FileInputStream fis = new FileInputStream(base.resolve(name).toFile())) {
-            return Mono.just(fis.readAllBytes());
-        } catch (IOException e) {
-            return Mono.empty();
-        }
+        return validateNameImage(name)
+                .filter(is -> !is)
+                .switchIfEmpty(Mono.error(new IllegalStateException("are you sure ???")))
+                .flatMap(is -> {
+                    try(FileInputStream fis = new FileInputStream(base.resolve(name).toFile())) {
+                        return Mono.just(fis.readAllBytes());
+                    } catch (IOException e) {
+                        return Mono.empty();
+                    }
+                });
     }
 
     public Mono<String> storeFile(byte[] filePart, String filename, String prefix, String name, boolean condition, Function<Path,Mono<Void>> elseCondition) {
         return Mono.just(name)
                 .filter(is -> is != null && !is.isBlank())
-                .flatMap(this::deleteFile)
+                .flatMap(this::validateNameImage)
+                .flatMap(valid -> {
+                    if(!valid)
+                        return deleteFile(name);
+                    else
+                        return Mono.error(new IllegalStateException("are you sure ???"));
+                })
                 .flatMap(is -> {if(is) return Mono.just(prefix + filename + ".jpg"); else throw new RuntimeException("cannot delete image");})
-                .switchIfEmpty(Mono.just(prefix + filename + ".jpg"))
+                .switchIfEmpty(
+                        Mono.just(prefix + filename + ".jpg")
+                                .flatMap(newName -> validateNameImage(newName)
+                                        .flatMap(valid -> {
+                                            if(!valid)
+                                                return Mono.just(newName);
+                                            else
+                                                return Mono.error(new IllegalStateException("are you sure ???"));
+                                        })
+                ))
                 .flatMap(title -> validateAndStore(filePart,title,condition,elseCondition).then(Mono.just(title)));
     }
 
@@ -65,10 +92,15 @@ public class FileStorageImpl implements FileStorage {
     }
 
     public Mono<Boolean> deleteFile(String name) {
-        File fs = new File(base.resolve(name).toUri());
-        if (fs.exists())
-            return Mono.just(fs.delete());
-        else
-            return Mono.just(false);
+        return validateNameImage(name)
+                .filter(is -> !is)
+                .switchIfEmpty(Mono.error(new IllegalStateException("are you sure ???")))
+                .flatMap(is -> {
+                    File fs = new File(base.resolve(name).toUri());
+                    if (fs.exists())
+                        return Mono.just(fs.delete());
+                    else
+                        return Mono.just(false);
+                });
     }
 }

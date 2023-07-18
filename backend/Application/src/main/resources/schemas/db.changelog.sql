@@ -170,3 +170,22 @@ ALTER TABLE member ADD userFrom uuid;
 --changeset Amar:alter-table-subtype-3
 --comment alter subtype-3
 ALTER TABLE subtype ADD color VARCHAR(50);
+
+--changeset Amar:create-table-subtype-note
+--comment create table subtype - note
+CREATE TABLE IF NOT EXISTS subtype_note_group(
+    id bigserial PRIMARY KEY,
+    subtype_group bigserial,
+    note uuid,
+    FOREIGN KEY (subtype_group) REFERENCES group_subtype(id) ON DELETE CASCADE,
+    FOREIGN KEY (note) REFERENCES note(id) ON DELETE CASCADE
+);
+
+--changeset Amar:create-index-table
+--comment create index for all table
+CREATE INDEX idx_note ON note(title ASC, category ASC, lastModifiedDate DESC);
+CREATE INDEX idx_subtype ON subtype(name ASC);
+CREATE INDEX idx_group_member ON group_member(group_note ASC, member ASC);
+CREATE INDEX idx_group_subtype ON group_subtype(group_note ASC, subtype ASC, index ASC);
+CREATE INDEX idx_subtype_note_group ON subtype_note_group(subtype_group ASC);
+CREATE INDEX idx_theme_member ON theme_member(theme ASC, member ASC)

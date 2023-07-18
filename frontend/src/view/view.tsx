@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import HeaderView from "./view-controller/header-view";
 import { NotificationViewForGroup, NotificationViewForMember } from "./view-controller/notification-view";
 import { GroupAdapter } from "../adapter/group-adapter";
@@ -13,7 +13,7 @@ import { setMembers } from "../configuration/redux/reducer/member-reducer";
 import { setMessage } from "../configuration/redux/reducer/message-response-reducer";
 import { setRoute } from "../configuration/redux/reducer/route-reducer";
 import { setGroups } from "../configuration/redux/reducer/group-reducer";
-import { ReduxRoute } from "../configuration/redux/redux-item-route";
+import { ReduxRoute } from "../usecase/other/redux-item-route";
 import { Router } from "../model/data/router-server/router";
 import { LoginView } from "./view-controller/login-view";
 import { SignInGroupView, SignInMemberView } from "./view-controller/signin-view";
@@ -21,9 +21,10 @@ import { GroupNoteView, PrivateNoteView } from "./view-controller/note-view";
 import { TabPanel } from "./container/global";
 import { ThemeView } from "./view-controller/theme-view";
 import { setGroupProfile } from "../configuration/redux/reducer/profile-reducer";
-import { DateConverter, FileConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../adapter/converter/attribute";
-import { EventNoteRounded, GroupRounded, NoteRounded } from "@mui/icons-material";
+import { DateConverter, FileConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../usecase/converter/attribute";
+import { EventNoteRounded, GroupRounded } from "@mui/icons-material";
 import { MessageView } from "./view-controller/message-view";
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 
 export default function View() {
     const large = useMediaQuery("(min-width:1000px)")
@@ -41,6 +42,8 @@ export default function View() {
     const [tab,setTab] = useState(0)
     const [isMember,setIsMember] = useState(false)
     const [isAddGroup,setIsAddGroup] = useState(false)
+    const [isEmptySearch,setIsEmptySearch] = useState(true)
+    const [searchName,setSearchName] = useState("")
     const search = useAppSelector(state => state.searchAndFilterReducer.search)
     const profile = useAppSelector(state => state.profileReducer.profile)
     const themeProfile = useAppSelector(state => state.profileReducer.theme)
@@ -51,6 +54,7 @@ export default function View() {
             dispatch(setRoute(ReduxRoute.SIGNUP))
         }
     },[])
+
     const onSearch = (adapterMember:MemberAdapter,adapterGroup:GroupAdapter,name:string,page:number,size:number,isMember:boolean) => {
         zip(of(name),of(page!),of(size)).pipe(
             tap(() => {dispatch(setSearch({...search,page:0,endPage:false}))}),
@@ -61,6 +65,7 @@ export default function View() {
                         if (members.length < item[2])
                             dispatch(setSearch({...search,endPage:true}))
                         dispatch(setMembers(members))
+                        setIsEmptySearch(false)
                     },(error) => {
                         if (error)
                             dispatch(setMessage({message:error,error:true}))   
@@ -70,6 +75,7 @@ export default function View() {
                         if (groups.length < item[2])
                             dispatch(setSearch({...search,endPage:true}))
                         dispatch(setGroups(groups))
+                        setIsEmptySearch(false)
                     },(error) => {
                         if (error)
                             dispatch(setMessage({message:error,error:true}))   
@@ -88,50 +94,56 @@ export default function View() {
             <div style={{width:"100%",height:"95%"}}>
                 <HeaderView 
                     adapterGroup={groupAdapter}
-                    adapterMember={memberAdapter} 
-                    onSearch={() => {onSearch(memberAdapter,groupAdapter,search.name,0,search.size,isMember)}}
+                    adapterMember={memberAdapter}
+                    onChangeSearch={text => {setSearchName(text)}}
+                    onSearch={() => {onSearch(memberAdapter,groupAdapter,searchName,0,search.size,isMember)}}
                     userSwitch={isMember}
                     onUserSwitch={(isMember) => {setIsMember(isMember)}}
                     sx={{}}/>
                 {(large)?
-                    <Stack direction="row" sx={{margin:"10px",height:"100%",backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'55':"none"}}>
-                        <div style={{display:(search.name === "")?"block":"none"}}>
-                            <ProfileGroupView
-                                memberAdapter={memberAdapter}
-                                onClickAddGroup={() => {setIsAddGroup(true)}}
-                                onClickMyNote={() => {dispatch(setGroupProfile(undefined))}}
-                                sx={{padding:"10px"}}
-                            />
-                        </div>
-                        <div style={{display:(search.name === "")?"none":"block"}}>
-                            <UserViewSearch
-                                adapterGroup={groupAdapter}
-                                adapterMember={memberAdapter}
-                                userSwitch={isMember}
-                                onRefreshSearch={() => {dispatch(setSearch({...search,name:""}));dispatch(setGroups([]));dispatch(setMembers([]))}}
-                                sx={{padding:"10px"}}
-                            />
-                        </div>
-                        {(groupProfile)?
-                            <GroupNoteView
-                                adapterGroup={groupAdapter}
-                                adapterNote={noteAdapter}
-                                adapterPublic={publicAdapter}
-                                adapterSubtype={subtypeAdapter}
-                                dateConverter={dateConverter}
-                                noteArrayCollabConverter={noteArrayCollabConverter}
-                                noteArrayPrivateConverter={noteArrayPrivateConverter}
-                                sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'35':"none"}}
-                            />:<PrivateNoteView
-                                adapterNote={noteAdapter}
-                                adapterPublic={publicAdapter}
-                                adapterSubtype={subtypeAdapter}
-                                dateConverter={dateConverter}
-                                noteArrayPrivateConverter={noteArrayPrivateConverter}
-                                sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'35':"none"}}
-                            />
-                        }
-                    </Stack>:<Box sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'55':"none",height:"100%"}}>
+                    <Grid2 container direction="row" sx={{margin:"10px",height:"100%",maxWidth:"100%",backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'55':"none"}}>
+                        <Grid2 xs={3} lg={2}>
+                            <div style={{display:(isEmptySearch)?"block":"none"}}>
+                                <ProfileGroupView
+                                    memberAdapter={memberAdapter}
+                                    onClickAddGroup={() => {setIsAddGroup(true)}}
+                                    onClickMyNote={() => {dispatch(setGroupProfile(undefined))}}
+                                    sx={{padding:"10px"}}
+                                />
+                            </div>
+                            <div style={{display:(isEmptySearch)?"none":"block"}}>
+                                <UserViewSearch
+                                    adapterGroup={groupAdapter}
+                                    adapterMember={memberAdapter}
+                                    userSwitch={isMember}
+                                    searchObj={searchName}
+                                    onRefreshSearch={() => {setSearchName("");setIsEmptySearch(true);dispatch(setGroups([]));dispatch(setMembers([]))}}
+                                    sx={{padding:"10px"}}
+                                />
+                            </div>
+                        </Grid2>
+                        <Grid2 xs={9} lg={10}>
+                            {(groupProfile)?
+                                <GroupNoteView
+                                    adapterGroup={groupAdapter}
+                                    adapterNote={noteAdapter}
+                                    adapterPublic={publicAdapter}
+                                    adapterSubtype={subtypeAdapter}
+                                    dateConverter={dateConverter}
+                                    noteArrayCollabConverter={noteArrayCollabConverter}
+                                    noteArrayPrivateConverter={noteArrayPrivateConverter}
+                                    sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'35':"none"}}
+                                />:<PrivateNoteView
+                                    adapterNote={noteAdapter}
+                                    adapterPublic={publicAdapter}
+                                    adapterSubtype={subtypeAdapter}
+                                    dateConverter={dateConverter}
+                                    noteArrayPrivateConverter={noteArrayPrivateConverter}
+                                    sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'35':"none"}}
+                                />
+                            }
+                        </Grid2>
+                    </Grid2>:<Box sx={{backgroundColor:themeProfile.background_color? themeProfile.background_color.substring(0,7)+'55':"none",height:"100%"}}>
                         <div style={{color:themeProfile.default_background}}>
                             <Tabs
                                 value={tab}
@@ -149,7 +161,7 @@ export default function View() {
                             targetValue={0}
                             sx={{width:"100%",height:"100%"}}
                         >
-                            <div style={{display:(search.name === "")?"block":"none"}}>
+                            <div style={{display:(isEmptySearch)?"block":"none"}}>
                                 <ProfileGroupView
                                     memberAdapter={memberAdapter}
                                     onClickAddGroup={() => {setIsAddGroup(true)}}
@@ -157,12 +169,13 @@ export default function View() {
                                     sx={{padding:"10px 0 10px 0",height:"100%"}}
                                 />
                             </div>
-                            <div style={{display:(search.name === "")?"none":"block"}}>
+                            <div style={{display:(isEmptySearch)?"none":"block"}}>
                                 <UserViewSearch
                                     adapterGroup={groupAdapter}
                                     adapterMember={memberAdapter}
+                                    searchObj={searchName}
                                     userSwitch={isMember}
-                                    onRefreshSearch={() => {dispatch(setSearch({...search,name:""}));dispatch(setGroups([]));dispatch(setMembers([]))}}
+                                    onRefreshSearch={() => {setSearchName("");setIsEmptySearch(true);dispatch(setGroups([]));dispatch(setMembers([]))}}
                                     sx={{padding:"10px 0 10px 0",height:"100%"}}
                                 />
                             </div>

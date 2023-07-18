@@ -1,6 +1,6 @@
 package com.amrtm.mynoteapps.entity.repository.relation;
 
-import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupMemberRel;
 import com.amrtm.mynoteapps.entity.repository.MyNoteStoreRepoRelation;
 import reactor.core.publisher.Mono;
 

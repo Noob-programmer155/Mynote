@@ -2,7 +2,7 @@ package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.ThemePersisConv;
 import com.amrtm.mynoteapps.entity.repository.theme.ThemeRepoImpl;
-import com.amrtm.mynoteapps.entity.theme.impl.Theme;
+import com.amrtm.mynoteapps.entity.model.theme.impl.Theme;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

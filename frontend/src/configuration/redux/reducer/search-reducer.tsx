@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { FilterType, SearchType } from "../redux-item-route";
+import { FilterType, SearchType } from "../../../usecase/other/redux-item-route";
 
 interface SearchAndFilterReducerInterface {
     search: SearchType,
@@ -13,31 +13,26 @@ interface SearchAndFilterReducerInterface {
 
 const initialState: SearchAndFilterReducerInterface = {
     search: {
-        name:"",
+        page:0,
+        size:15,
+        endPage: false
+    },
+    myThemeSearch: {
         page:0,
         size:20,
         endPage: false
     },
-    myThemeSearch: {
-        name:"",
-        page:0,
-        size:30,
-        endPage: false
-    },
     globalThemeSearch: {
-        name:"",
         page:0,
-        size:30,
+        size:20,
         endPage: false
     },
     notePrivateSearch: {
-        name:"",
         page:0,
         size:20,
         endPage: false
     },
     noteCollabSearch: {
-        name:"",
         page:0,
         size:20,
         endPage: false

@@ -1,11 +1,10 @@
 package com.amrtm.mynoteapps.usecase.note;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollabDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivateDTO;
-import com.amrtm.mynoteapps.entity.note.private_note.impl.NotePrivate;
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
-import com.amrtm.mynoteapps.entity.note.NoteDTOInterface;
-import com.amrtm.mynoteapps.entity.other.utils.Tuple2;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollabDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivateDTO;
+import com.amrtm.mynoteapps.entity.model.note.private_note.impl.NotePrivate;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.NoteDTOInterface;
 import com.amrtm.mynoteapps.entity.other.utils.Tuple3;
 import com.amrtm.mynoteapps.entity.repository.bindfunction.EntityBindFunctionImpl;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
@@ -14,8 +13,8 @@ import com.amrtm.mynoteapps.entity.repository.note.fetchjoin.JoinFetchNoteCollab
 import com.amrtm.mynoteapps.entity.repository.note.fetchjoin.JoinFetchNotePrivateInterface;
 import com.amrtm.mynoteapps.entity.repository.subtype.SubtypeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.Subtype;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

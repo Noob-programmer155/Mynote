@@ -1,6 +1,6 @@
 import { ArrowDropDown, Cancel, SearchRounded } from "@mui/icons-material";
 import { Button, Chip, IconButton, IconButtonProps, InputAdornment, InputBase, styled, TextField, SxProps, Theme, Stack, InputBaseProps, StackProps, Box, Fab, Tooltip, Paper, Typography, Menu, MenuItem, CircularProgress, BoxProps, Switch, alpha } from "@mui/material";
-import { ChangeEvent, MouseEvent, RefObject, useRef } from "react";
+import { ChangeEvent, ChangeEventHandler, MouseEvent, RefObject, forwardRef, useRef } from "react";
 import { Theme as ThemeObj } from "../../model/model";
 import { IdAndName } from "../../model/model-side";
 
@@ -107,22 +107,21 @@ export const ThemeFab = styled(Fab,{
 interface SearchFieldInterface {
     ids?:string
     placeholder:string
-    onChange: (text: ChangeEvent<HTMLInputElement>) => void
+    value?: string
     onSearch: (event?:MouseEvent<HTMLButtonElement,globalThis.MouseEvent>) => void
+    onChange: ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement> | undefined
     onClear?: () => void
     theme: ThemeObj
     isDropDownButton: boolean
     buttonPropsDropDown?: IconButtonProps
     buttonPropsClear?: IconButtonProps
     refTarget?: ((data: HTMLDivElement | null) => void) | RefObject<HTMLDivElement> | null
-    value?: string
     sx?:SxProps<Theme>
 }
 
-export const SearchField = ({ids,value,refTarget,placeholder,onChange,onSearch,onClear,theme,buttonPropsDropDown,buttonPropsClear,isDropDownButton,sx}:SearchFieldInterface) => (
+export const SearchField = ({ids,refTarget,value,placeholder,onSearch,onChange,onClear,theme,buttonPropsDropDown,buttonPropsClear,isDropDownButton,sx}:SearchFieldInterface,) => (
     <ThemeTextField
         id={ids}
-        onChange={onChange}
         onKeyDown={(event) => {
             if (event.key === 'Enter') {
                 onSearch()
@@ -135,6 +134,7 @@ export const SearchField = ({ids,value,refTarget,placeholder,onChange,onSearch,o
         placeholder={placeholder}
         ref={refTarget}
         value={value}
+        onChange={onChange}
         sx={sx}
         InputProps={{
             endAdornment: <InputAdornment position="end" sx={{color:"inherit"}}>

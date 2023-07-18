@@ -34,12 +34,15 @@ public class ServiceAll {
     private final GroupMemberRepoAdapter groupMemberRepoAdapter;
     private final GroupSubtypeRepoAdapter groupSubtypeRepoAdapter;
     private final ThemeMemberRepoAdapter themeMemberRepoAdapter;
+    private final SubtypeNoteRepoAdapter subtypeNoteRepoAdapter;
     private final GroupRepoAdapter groupRepoAdapter;
     private final MemberRepoAdapter memberRepoAdapter;
     private final SubtypeRepoAdapter subtypeRepoAdapter;
     private final ThemeRepoAdapter themeRepoAdapter;
 
-    public ServiceAll(JwtProvider jwtProvider, PasswordEncoderClass passwordEncoderClass, AuthValidationClass authValidationClass, LoginRepoAdapter loginRepoAdapter, NoteCollabRepoAdapter noteCollabRepoAdapter, NotePrivateRepoAdapter notePrivateRepoAdapter, GroupMemberRepoAdapter groupMemberRepoAdapter, GroupSubtypeRepoAdapter groupSubtypeRepoAdapter, ThemeMemberRepoAdapter themeMemberRepoAdapter, GroupRepoAdapter groupRepoAdapter, MemberRepoAdapter memberRepoAdapter, SubtypeRepoAdapter subtypeRepoAdapter, ThemeRepoAdapter themeRepoAdapter) {
+    public ServiceAll(JwtProvider jwtProvider, PasswordEncoderClass passwordEncoderClass, AuthValidationClass authValidationClass, LoginRepoAdapter loginRepoAdapter, NoteCollabRepoAdapter noteCollabRepoAdapter, NotePrivateRepoAdapter notePrivateRepoAdapter,
+                      GroupMemberRepoAdapter groupMemberRepoAdapter, GroupSubtypeRepoAdapter groupSubtypeRepoAdapter, ThemeMemberRepoAdapter themeMemberRepoAdapter, SubtypeNoteRepoAdapter subtypeNoteRepoAdapter,
+                      GroupRepoAdapter groupRepoAdapter, MemberRepoAdapter memberRepoAdapter, SubtypeRepoAdapter subtypeRepoAdapter, ThemeRepoAdapter themeRepoAdapter) {
         this.jwtProvider = jwtProvider;
         this.passwordEncoderClass = passwordEncoderClass;
         this.authValidationClass = authValidationClass;
@@ -49,6 +52,7 @@ public class ServiceAll {
         this.groupMemberRepoAdapter = groupMemberRepoAdapter;
         this.groupSubtypeRepoAdapter = groupSubtypeRepoAdapter;
         this.themeMemberRepoAdapter = themeMemberRepoAdapter;
+        this.subtypeNoteRepoAdapter = subtypeNoteRepoAdapter;
         this.groupRepoAdapter = groupRepoAdapter;
         this.memberRepoAdapter = memberRepoAdapter;
         this.subtypeRepoAdapter = subtypeRepoAdapter;
@@ -61,6 +65,9 @@ public class ServiceAll {
     @Value("${uuid.init}")
     private String uuid;
 
+    @Value("${database.image.user}")
+    private String user;
+
     @Bean
     public GroupService<GroupStorageImpl, Pageable> groupService() {
         return new GroupService<>(
@@ -68,7 +75,7 @@ public class ServiceAll {
                 new GroupConverter(),
                 new MemberConverter(passwordEncoderClass),
                 groupMemberRepoAdapter,
-                new GroupStorageImpl(Paths.get("/home/amar/worked/MyNote/res/images/group/")),
+                new GroupStorageImpl(Paths.get("/home/"+user+"/worked/MyNote/res/images/group/")),
                 authValidationClass,
                 memberRepoAdapter,
                 noteCollabRepoAdapter
@@ -86,7 +93,7 @@ public class ServiceAll {
                 authValidationClass,
                 new JoinFetchMember<>(memberRepoAdapter,themeRepoAdapter,new EntityBindFunctionImpl(delimiter),uuid),
                 groupMemberRepoAdapter,
-                new MemberStorageImpl(Paths.get("/home/amar/worked/MyNote/res/images/member/")),
+                new MemberStorageImpl(Paths.get("/home/"+user+"/worked/MyNote/res/images/member/")),
                 jwtProvider
         );
     }
@@ -100,7 +107,7 @@ public class ServiceAll {
                 authValidationClass,
                 themeMemberRepoAdapter,
                 memberRepoAdapter,
-                new ThemeStorageImpl(Paths.get("/home/amar/worked/MyNote/res/images/theme/"))
+                new ThemeStorageImpl(Paths.get("/home/"+user+"/worked/MyNote/res/images/theme/"))
         );
     }
 
@@ -127,7 +134,9 @@ public class ServiceAll {
                 new NoteCollabConverter(delimiter),
                 new NotePrivateConverter(delimiter),
                 memberRepoAdapter,
-                groupMemberRepoAdapter
+                groupMemberRepoAdapter,
+                groupSubtypeRepoAdapter,
+                subtypeNoteRepoAdapter
         );
     }
 }

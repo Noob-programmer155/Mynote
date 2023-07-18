@@ -1,7 +1,7 @@
 package com.amrtm.mynoteapps.adapter.database.repository;
 
 import com.amrtm.mynoteapps.adapter.converter.ThemeMemberPersisConv;
-import com.amrtm.mynoteapps.entity.relation.ThemeMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.ThemeMemberRel;
 import com.amrtm.mynoteapps.entity.repository.relation.ThemeMemberRepoRelation;
 import reactor.core.publisher.Mono;
 

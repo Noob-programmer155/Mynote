@@ -1,17 +1,17 @@
 package com.amrtm.mynoteapps.usecase.subtype;
 
-import com.amrtm.mynoteapps.entity.note.collab_note.impl.NoteCollab;
+import com.amrtm.mynoteapps.entity.model.note.collab_note.impl.NoteCollab;
 import com.amrtm.mynoteapps.entity.other.Role;
-import com.amrtm.mynoteapps.entity.relation.GroupMemberRel;
-import com.amrtm.mynoteapps.entity.relation.GroupSubtypeRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupMemberRel;
+import com.amrtm.mynoteapps.entity.model.relation.GroupSubtypeRel;
 import com.amrtm.mynoteapps.entity.repository.note.NoteCollabRepo;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupMemberRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.relation.GroupSubtypeRepoRelation;
 import com.amrtm.mynoteapps.entity.repository.subtype.SubtypeRepoImpl;
 import com.amrtm.mynoteapps.entity.repository.user.MemberRepoImpl;
-import com.amrtm.mynoteapps.entity.subtype.impl.Subtype;
-import com.amrtm.mynoteapps.entity.subtype.impl.SubtypeDTO;
-import com.amrtm.mynoteapps.entity.user.member.impl.Member;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.Subtype;
+import com.amrtm.mynoteapps.entity.model.subtype.impl.SubtypeDTO;
+import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.SubtypeConverter;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import reactor.core.publisher.Flux;
