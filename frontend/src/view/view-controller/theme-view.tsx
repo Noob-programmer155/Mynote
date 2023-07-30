@@ -13,7 +13,7 @@ import { DateConverter, FileConverter } from "../../adapter/converter/attribute"
 import { setThemeProfile, setThemesProfiles } from "../../configuration/redux/reducer/profile-reducer";
 import { ReduxRoute } from "../../model/data/router-server/redux-item-route";
 import { ThemePreview } from "../container/theme-container";
-import { defaultTheme, limitFileTheme } from "../../usecase/resource";
+import { defaultTheme, limitFileTheme } from "../../model/resource";
 import { setGlobalThemeSearch, setMyThemeSearch } from "../../configuration/redux/reducer/search-reducer";
 import { Theme } from "../../model/model";
 import { Add, AddCircle, ArrowBack, Close } from "@mui/icons-material";

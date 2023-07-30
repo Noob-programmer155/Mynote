@@ -8,7 +8,7 @@ import com.amrtm.mynoteapps.entity.model.theme.impl.ThemeDTO;
 import com.amrtm.mynoteapps.entity.model.relation.ThemeMemberRel;
 import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.ThemeConverter;
-import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;
+import com.amrtm.mynoteapps.usecase.storage.file.FileStorageImpl;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import reactor.core.publisher.Flux;

@@ -4,7 +4,7 @@ import { Subtype } from "../model/model";
 import { Single } from "../model/model-side";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../usecase/resource";
+import { bearer_name } from "../model/resource";
 import { Connection, SubtypeAdapterInterface } from "../usecase/adapter";
 
 export class SubtypeAdapter implements SubtypeAdapterInterface {

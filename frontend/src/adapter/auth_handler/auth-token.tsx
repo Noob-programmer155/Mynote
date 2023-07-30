@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios";
-import { bearer_name } from "../../usecase/resource";
+import { bearer_name } from "../../model/resource";
 import { Single } from "../../model/model-side";
 import ValidateError from "../../model/error/ValidateError";
 import { ReduxRoute } from "../../model/data/router-server/redux-item-route";

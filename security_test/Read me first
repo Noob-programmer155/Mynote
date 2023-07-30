@@ -1,0 +1,5 @@
+=====================================================================================
+All of high risk (except Generic Padding Oracle) in API server has been fixed
+-------------------------------------------------------------------------------------
+risk of SQL Injection its wrong, because in login response data is token JWT, so the value is always change
+=====================================================================================

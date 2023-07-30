@@ -5,7 +5,7 @@ import { IdAndName, Password, Single } from "../model/model-side";
 import { MultipartBody } from "../model/data/router-server/attachment";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../usecase/resource";
+import { bearer_name } from "../model/resource";
 import { Connection, MemberAdapterInterface } from "../usecase/adapter";
 
 export class MemberAdapter implements MemberAdapterInterface {

@@ -13,7 +13,7 @@ import { setGroupProfile, setGroupsProfiles, setLogin, setProfile, setThemeProfi
 import { setMember } from "../../configuration/redux/reducer/member-reducer"
 import { setGroup } from "../../configuration/redux/reducer/group-reducer"
 import { ValidateSaveVariable, validateName } from "../../usecase/other/validate" 
-import { limitFileUser } from "../../usecase/resource"
+import { limitFileUser } from "../../model/resource"
 
 interface SignInMemberViewInterface {
     adapterPublic: PublicAdapter

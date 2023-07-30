@@ -5,7 +5,7 @@ import { Group, Member } from "../model/model";
 import { IdAndName, Single } from "../model/model-side";
 import { ConnectionAxios } from "./adapter";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
-import { bearer_name } from "../usecase/resource";
+import { bearer_name } from "../model/resource";
 import { Connection, GroupAdapterInterface } from "../usecase/adapter";
 
 export class GroupAdapter implements GroupAdapterInterface {

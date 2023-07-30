@@ -1,6 +1,6 @@
 import { NotePrivate, Subtype, Model, NoteCollab } from "../../model";
 import { FilterGroup, FilterMember, Login, Password } from "../../model-side";
-import { server as envServer } from "../../../usecase/resource";
+import { server as envServer } from "../../resource";
 
 declare global {
     interface Window { ip: any; }

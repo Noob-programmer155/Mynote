@@ -7,7 +7,7 @@ import { GroupAdapter } from "./group-adapter";
 import { ThemeAdapter } from "./theme-adapter";
 import { SubtypeAdapter } from "./subtype-adapter";
 import { NoteAdapter } from "./note-adapter";
-import { bearer_name } from "../usecase/resource";
+import { bearer_name } from "../model/resource";
 import { Connection } from "../usecase/adapter";
 
 export class ConnectionAxios extends Connection {

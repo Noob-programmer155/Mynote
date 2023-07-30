@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { Group, Member, Theme } from "../../../model/model";
-import { defaultTheme } from "../../../usecase/resource";
+import { defaultTheme } from "../../../model/resource";
 import { compareTheme } from "../../../usecase/other/validate";
 
 interface ProfileState {

@@ -10,7 +10,7 @@ import { EMPTY, Subject, debounceTime, distinctUntilChanged, every, exhaustMap, 
 import { setMessage } from "../../configuration/redux/reducer/message-response-reducer";
 import { setRoute } from "../../configuration/redux/reducer/route-reducer";
 import { NoteList } from "../container/note-container";
-import { delimiter, emptyNotesId } from "../../usecase/resource"
+import { delimiter, emptyNotesId } from "../../model/resource"
 import { DateConverter, NoteCollabArrayConverter, NotePrivateArrayConverter } from "../../adapter/converter/attribute";
 import { setNoteCollab, setNotePrivate, setNotePrivates, setSubtype, setSubtypes } from "../../configuration/redux/reducer/note-reducer";
 import { SubtypeAdapter } from "../../adapter/subtype-adapter";

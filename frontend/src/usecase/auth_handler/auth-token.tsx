@@ -1,4 +1,4 @@
-import { token_name } from "../resource";
+import { token_name } from "../../model/resource";
 
 export abstract class AuthTokenHandler {
     protected readonly refreshUrl: string

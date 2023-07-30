@@ -4,7 +4,7 @@ import { NoteCollab, NotePrivate } from "../model/model";
 import { FilterGroup, FilterMember, Single } from "../model/model-side";
 import { AuthTokenHandlerImpl } from "./auth_handler/auth-token";
 import { ConnectionAxios } from "./adapter";
-import { bearer_name } from "../usecase/resource";
+import { bearer_name } from "../model/resource";
 import { Connection, NoteAdapterInterface } from "../usecase/adapter";
 
 export class NoteAdapter implements NoteAdapterInterface {

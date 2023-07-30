@@ -99,7 +99,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot get note, because you`re not a member")))
                 .flatMapMany(item -> joinFetchNote.findByTitleLike(title, null, group, pageable));
     }
 
@@ -116,7 +116,7 @@ public class NoteService<PagingAndSorting> implements NoteServiceArc<PagingAndSo
                 .flatMap(item -> memberRepo.findByName(item).map(Member::getId))
                 .flatMap(item -> groupMemberRepoRelation.findByParentAndChild(group,item).hasElement())
                 .filter(item -> item)
-                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot add note, because you`re not a member")))
+                .switchIfEmpty(Mono.error(new IllegalAccessException("You cannot get note, because you`re not a member")))
                 .flatMapMany(item -> joinFetchNote.findByFilterGroupMember(severity, subtypeDTOS, member, group, pageable));
     }
 

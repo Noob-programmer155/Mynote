@@ -14,7 +14,7 @@ import com.amrtm.mynoteapps.entity.model.user.member.impl.MemberDTO;
 import com.amrtm.mynoteapps.entity.model.user.member.impl.Member;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.GroupConverter;
 import com.amrtm.mynoteapps.usecase.converter.entity_converter.MemberConverter;
-import com.amrtm.mynoteapps.usecase.file.FileStorageImpl;
+import com.amrtm.mynoteapps.usecase.storage.file.FileStorageImpl;
 import com.amrtm.mynoteapps.entity.other.obj.UUIDIdAndName;
 import com.amrtm.mynoteapps.usecase.security.AuthValidation;
 import com.amrtm.mynoteapps.usecase.security.SecurityTokenProvider;

@@ -12,11 +12,9 @@ class MainActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val view = WebView(this)
-        view.loadUrl("http://35.209.226.244")
-        view.settings.allowFileAccess = true
+        view.loadUrl("http://localhost:8080")
         view.settings.domStorageEnabled = true
         view.settings.javaScriptEnabled = true
-        view.settings.allowContentAccess = true
         view.webViewClient = Client(this)
 
         setContentView(view)
@@ -25,7 +23,7 @@ class MainActivity: AppCompatActivity() {
 
 private class Client (val activity:Activity): WebViewClient() {
     override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-        if (request?.url.toString().indexOf("http://35.209.226.244") > -1) return false
+        if (request?.url?.host == "localhost") return false
 
         val intent:Intent = Intent(Intent.ACTION_VIEW,request?.url)
         activity.startActivity(intent)
