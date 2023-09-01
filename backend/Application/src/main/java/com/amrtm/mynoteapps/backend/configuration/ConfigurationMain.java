@@ -66,11 +66,11 @@ public class ConfigurationMain {
     Logger log = Logger.getGlobal();
     @Bean
     SecurityWebFilterChain http(ServerHttpSecurity http) throws IOException {
-        URL url = new URL("http://checkip.amazonaws.com");
-        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+//        URL url = new URL("http://checkip.amazonaws.com");
+//        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         ArrayList<String> originUrl = new ArrayList<>(Arrays.stream(origin.split(delimiter)).toList());
-        originUrl.add("http://"+in.readLine());
-        log.info(originUrl.get(2));
+//        originUrl.add("http://"+in.readLine());
+//        log.info(originUrl.get(3));
         return SecurityMain.httpConfiguration(http,securityContextCustom,authenticationManager,originUrl);
     }
 }

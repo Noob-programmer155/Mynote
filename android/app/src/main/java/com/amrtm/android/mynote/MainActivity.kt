@@ -12,7 +12,7 @@ class MainActivity: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val view = WebView(this)
-        view.loadUrl("http://localhost:8080")
+        view.loadUrl("http://34.133.44.55")
         view.settings.domStorageEnabled = true
         view.settings.javaScriptEnabled = true
         view.webViewClient = Client(this)
