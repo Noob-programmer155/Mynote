@@ -1,4 +1,4 @@
-ORIGINS_URL=http://localhost:8082::http://127.0.0.1:8082
+ORIGINS_URL=http://127.0.0.1::http://localhost::https://127.0.0.1::https://localhost
 EXPIRED_TOKEN=2500000
 VALID_EXPIRED_TOKEN=259200000
 DB_NAME=mynote
