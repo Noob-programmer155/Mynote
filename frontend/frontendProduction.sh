@@ -3,6 +3,9 @@
 #setup network
 docker network create mynote
 
+#if using reverse proxy
+#docker network create --internal mynote
+
 #=============================================
 
 #build image

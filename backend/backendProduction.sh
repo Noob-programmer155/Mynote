@@ -10,7 +10,7 @@ docker pull postgres
 docker run -d -p 5432:5432 --net mynote-internal --name db -e "POSTGRESS_PASSWORD=admin123" postgres
 docker cp ./dbdump_mynote.sql db:/dbsql.sql
 #set up name
-docker exec -it db bash <<EOF
+docker exec -i db bash <<EOF
   dbpassmain='admin123'
   PGPASSWORD=${dbpassmain} psql -U postgres -c "CREATE USER admin WITH CREATEDB PASSWORD 'admin'"
   dbpass='admin'

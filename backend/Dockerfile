@@ -5,7 +5,7 @@ RUN gradle clean build || return 1
 
 FROM openjdk:17-alpine
 ENV APP_NAME=Application-1.0.jar
-ENV BUILD_FOLDER=Application/build/libs/
+ENV BUILD_FOLDER=Application/build/libs
 ENV _WORKDIR=/home/docker/backend
 
 COPY --from=BUILD_CONTAINER /home/gradle/${BUILD_FOLDER}/${APP_NAME} ${_WORKDIR}/
