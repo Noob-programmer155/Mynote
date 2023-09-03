@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# remember: install backend after frontend will cause error CORS...
+# remember: install backend after frontend will cause error CORS (if using direct connection)...
 
 #setup network database
 docker network create --internal mynote-internal
